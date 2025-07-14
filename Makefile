@@ -106,7 +106,7 @@ $(JS_CHECK): out/%.check: %.js .jshintrc
 	$(info doing [$@])
 	$(Q)pymakehelper run_with_ignore $< NOJSHINT node_modules/.bin/jshint $<
 	$(Q)pymakehelper touch_mkdir $@
-$(HTML_CHECK): out/%.check: %.html scripts/run_tidy.py .tidy.config
+$(HTML_CHECK): out/%.check: %.html .tidy.config
 	$(info doing [$@])
 	$(Q)pymakehelper only_print_on_error node_modules/.bin/htmlhint $<
 	$(Q)pymakehelper run_with_ignore $< NOTIDY tidy -errors -quiet -config .tidy.config $<
