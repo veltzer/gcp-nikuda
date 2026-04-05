@@ -676,10 +676,9 @@ $(document).ready(function() {
   Quicky.removeAttr('disabled');
   QuickyButton.removeAttr('disabled');
 
-  // Insert an introductry text to be punctuated
-  MainText.val('ברוכים הבאים לנִקֻּדַהּ!\n' +
-      'לחצו על המלים כאן וראו כיצד הן משתנות.\n' +
-      'לעזרה נסו את הצרוף ctrl+shift+י\'.\nשמוש מצלח!');
+  // Input fields start empty; placeholders provide guidance
+
+  // Welcome text will be punctuated via nikudize() at end of ready
 
   // Bind letter and help hotkeys
   function keyEventHandler(evt) {
@@ -889,14 +888,22 @@ $(document).ready(function() {
   //  Answer.children().select();
   //});
 
-  // Punctuate the first introduction sentance while using the done handler
-  // to select the 12th word's correct punctuation
+  // Punctuate intro text in the results area, then clear the input
+  MainText.val(
+      '\u05D1\u05E8\u05D5\u05DB\u05D9\u05DD \u05D4\u05D1\u05D0\u05D9\u05DD' +
+      ' \u05DC\u05E0\u05B4\u05E7\u05BB\u05D3\u05B7\u05D4\u05BC!\n' +
+      '\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DE\u05DC\u05D9\u05DD' +
+      ' \u05DB\u05D0\u05DF \u05D5\u05E8\u05D0\u05D5 \u05DB\u05D9\u05E6\u05D3' +
+      ' \u05D4\u05DF \u05DE\u05E9\u05EA\u05E0\u05D5\u05EA.\n' +
+      '\u05DC\u05E2\u05D6\u05E8\u05D4 \u05E0\u05E1\u05D5 \u05D0\u05EA' +
+      ' \u05D4\u05E6\u05E8\u05D5\u05E3 ctrl+shift+\u05D9\'.\n' +
+      '\u05E9\u05DE\u05D5\u05E9 \u05DE\u05E6\u05DC\u05D7!'
+  );
   nikudize(function() {
-    // Select 12th word
+    // Clear input after punctuation completes
+    MainText.val('');
+    // Select 12th word and cycle its punctuation for demo
     var mushtanot = Answer.children('span:nth-child(12)');
-
-    // Click it twice in order to change it to the correct punctuation
-    // delay this for maximum dramatic effect
     window.setTimeout(function() { mushtanot.click(); }, 1000);
     window.setTimeout(function() { mushtanot.click(); }, 3000);
   });

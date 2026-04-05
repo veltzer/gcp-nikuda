@@ -4,7 +4,8 @@
 		<!-- nikuda by sagi 6/2005 -->
 		<!-- updated by doron 6/2010 -->
 		<!-- updated by mark 10/2013 -->
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>nIkUdA נִקֻּדַהּ</title>
 		<link rel="shortcut icon" href="/static/images/favicon.ico"/>
 		<meta content="נקדה, תכנה לניקוד אוטומט" name="description" />
@@ -19,31 +20,22 @@
 	<body dir="rtl">
 		<img class="nikuda_label" src="/static/images/nikuda.gif" draggable="false" ondragstart="return false;" alt="נִקֻּדַהּ" />
 		<div class="access">
+			<textarea class="access_text" id="MainText" rows="10" cols="50" disabled="disabled" tabindex="1" placeholder="הכניסו פסקה לניקוד ולחצו על הכפתור שמתחת..."></textarea>
 			<input id="NikudizeButton" type="button" class="access_button" value="נקד פסקה שלמה" title="נקד את כלל המלל בתיבה שמתחת" disabled="disabled" tabindex="2"/>
-			<textarea class="access_text" id="MainText" style="font-size:1em; resize:none" rows="10" cols="50" disabled="disabled" tabindex="1"></textarea>
-			<!--div class="access_separator"></div-->
-			<input id="QuickyButton" type="button" class="access_button" value="נקד מילה בודדת, אוטומטית" title="נקד את המילה הבודדת בשורה שמתחת" disabled="disabled" tabindex="3"/>
-			<input class="access_text" id="Quicky" type="text" disabled="disabled" tabindex="4"/>
+			<input class="access_text" id="Quicky" type="text" disabled="disabled" tabindex="3" placeholder="הכניסו מילה בודדת ולחצו על הכפתור שמתחת..."/>
+			<input id="QuickyButton" type="button" class="access_button" value="נקד מילה בודדת, אוטומטית" title="נקד את המילה הבודדת בשורה שמתחת" disabled="disabled" tabindex="4"/>
 			<div>
 				<div id="SuggestionBox" style="display:none">
-					<table style="width:100%">
-						<tbody>
-							<tr>
-								<td>
-									<ul id="SuggestionList" style="color:black">
-									</ul>
-								</td>
-							</tr>
-						</tbody>
-					</table>
+					<ul id="SuggestionList">
+					</ul>
 				</div>
 			</div>
 			<!--div class="access_separator"></div-->
 			<div id="MeNaked" style="display:none">
-				<div class ="access_text" id="QuickyAns" style="text-align:center; margin: 8% auto">
+				<div class="access_text" id="QuickyAns">
 					<!-- quicky answer -->
 				</div>
-				<div style="width:95%; margin:auto; overflow:hidden">
+				<div class="nikud_palette">
 					<img class="nikud_button" src="/static/images/nikud_0.svg" alt="&#187;" onclick="insert_Draft(' ');" title="נקה ניקוד"/>
 					<img class="nikud_button" src="/static/images/nikud_1.svg" alt="שׂ" onclick="insert_Draft('ׂ');" title="שׂין"/>
 					<img class="nikud_button" src="/static/images/nikud_2.svg" alt="שׁ" onclick="insert_Draft('ׁ');" title="שׁין"/>
@@ -60,13 +52,13 @@
 					<img class="nikud_button" src="/static/images/nikud_E.svg" alt="ֱ" onclick="insert_Draft('ֱ');" title="חטף סֱגול"/>
 					<img class="nikud_button" src="/static/images/nikud_F.svg" alt="ְ" onclick="insert_Draft('ְ');" title="שְווא"/>
 				</div>
-				<div class="access_text" id="Draft" style="font-size:3em; cursor:pointer; text-align:center; margin: 0">
+				<div class="access_text" id="Draft">
 					<!-- draft -->
 				</div>
-				<input id="DraftUpdateButton" type="button" class="access_button" value="עדכן מילה לתוצאה" title="עדכן מילה שנֻקדה לתוצאה" style="margin:0" tabindex="5"/>
+				<input id="DraftUpdateButton" type="button" class="access_button" value="עדכן מילה לתוצאה" title="עדכן מילה שנֻקדה לתוצאה" tabindex="5"/>
 				<!--<input id="SelectAll" type="button" class="access_button" value="העתק תוצאה" title="בחר בכל הטקסט שנֻקד" tabindex="6"/>-->
 			</div>
-			<input id="Status" type="text" disabled="disabled" style="width:100%"/>
+			<input id="Status" type="text" disabled="disabled"/>
 		</div>
 		<div class="answer_text">
 			<!--div>
@@ -130,7 +122,7 @@
 			כרגע אפשרות זאת קיימת רק עבור משתמשים רשומים<br />
 			בכדי לקבל רשות להוסיף למאגר הניקוד נא לפנות למייל בתחתית הרשימה<br />
 			-->
-			<p style="text-align: left">
+			<p>
 				<b>נִקֻּדַהּ 10/6/2005 </b><br /><br /> <br />
 			</p>
 			<blockquote>
