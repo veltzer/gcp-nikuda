@@ -64,6 +64,7 @@ body {
 /* Left Panel - Controls */
 .access {
 	flex: 0 0 380px;
+	height: calc(100vh - 48px);
 	background: var(--md-surface);
 	border-radius: var(--md-radius);
 	box-shadow: var(--md-shadow-1);
@@ -71,7 +72,6 @@ body {
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	max-height: calc(100vh - 48px);
 	overflow-y: auto;
 	border: none;
 }
@@ -107,7 +107,8 @@ body {
 
 textarea.access_text {
 	resize: none;
-	min-height: 160px;
+	height: 160px;
+	flex-shrink: 0;
 }
 
 /* Material raised buttons */
@@ -115,6 +116,7 @@ textarea.access_text {
 	display: block;
 	width: 100%;
 	padding: 12px 24px;
+	flex-shrink: 0;
 	font-family: "Noto Sans Hebrew", Roboto, Arial, sans-serif;
 	font-size: 0.9375rem;
 	font-weight: 500;
@@ -185,6 +187,7 @@ textarea.access_text {
 /* Answer / Results panel */
 .answer_text {
 	flex: 1;
+	height: calc(100vh - 48px);
 	background: var(--md-surface);
 	border-radius: var(--md-radius);
 	box-shadow: var(--md-shadow-1);
@@ -192,8 +195,6 @@ textarea.access_text {
 	font-size: 1.5rem;
 	line-height: 2;
 	text-align: right;
-	min-height: 300px;
-	max-height: calc(100vh - 48px);
 	overflow-y: auto;
 	float: none;
 	margin: 0;
@@ -241,6 +242,11 @@ textarea.access_text {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+	flex-shrink: 0;
+}
+
+#MeNaked.me-naked-hidden {
+	visibility: hidden;
 }
 
 /* Draft display area */
@@ -268,16 +274,30 @@ textarea.access_text {
 	background: rgb(92 107 192 / 4%);
 }
 
-/* Status bar */
-#Status {
-	width: 100%;
-	padding: 8px 12px;
-	font-size: 0.8125rem;
-	color: var(--md-on-surface-secondary);
-	background: #f5f5f5;
-	border: none;
+/* Toast notification */
+#Toast {
+	position: fixed;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%) translateY(100px);
+	padding: 12px 24px;
+	background: #323232;
+	color: #fff;
+	font-size: 0.875rem;
 	border-radius: var(--md-radius);
-	text-align: right;
+	box-shadow: var(--md-shadow-2);
+	z-index: 200;
+	opacity: 0;
+	transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	pointer-events: none;
+	max-width: 80vw;
+	text-align: center;
+	white-space: pre-line;
+}
+
+#Toast.toast-visible {
+	transform: translateX(-50%) translateY(0);
+	opacity: 1;
 }
 
 /* Help overlay */

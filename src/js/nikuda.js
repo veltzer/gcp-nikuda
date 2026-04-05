@@ -22,9 +22,18 @@ $.ajaxSetup({
 
 // General purpose methods
 
+var toastTimeout;
 function show_to_user(text) {
-  Status.val(text);
-  //Status.text(text);
+  var toast = $('#Toast');
+  clearTimeout(toastTimeout);
+  if (!text) {
+    toast.removeClass('toast-visible');
+    return;
+  }
+  toast.text(text).addClass('toast-visible');
+  toastTimeout = setTimeout(function() {
+    toast.removeClass('toast-visible');
+  }, 4000);
 }
 
 function fake_use(x) {
@@ -54,19 +63,14 @@ function get_Key_Code(evt) {
 }
 
 function validate_Hebrew(evt) {
-  var keynum = get_Key_Code(evt);
-
-  var keychar = String.fromCharCode(keynum);
-  if (/\w/.test(keychar) && !evt.ctrlKey) {
+  if (evt.ctrlKey || evt.altKey || evt.metaKey) {
+    return;
+  }
+  // evt.key gives the actual character for printable keys
+  if (evt.key && evt.key.length === 1 && /[a-zA-Z]/.test(evt.key)) {
     // Do not allow english letters
     show_to_user('אנא השתמש במקלדת עיברית...');
-    evt.returnValue = false;
-    if (evt.preventDefault) {
-      evt.preventDefault();
-    }
-  }
-  else {
-    show_to_user('');
+    evt.preventDefault();
   }
 }
 
@@ -254,7 +258,7 @@ function nikudize(doneHandler) {
 
   // Hide all other punctuation ways punctuate automatic and focus on text
   HelpBox.hide('slow');
-  MeNaked.hide();
+  MeNaked.addClass('me-naked-hidden');
 
   var txt = MainText.val();
   txt = txt.replace(/\n/g, '<br>');
@@ -397,7 +401,7 @@ function set_Draft(nikud) {
 
   // Show the punctuation div now that it is set up
   // (if already shown, does nothing)
-  MeNaked.show('slow');
+  MeNaked.removeClass('me-naked-hidden');
 }
 
 function update_Draft() {
@@ -668,7 +672,6 @@ $(document).ready(function() {
   QuickyButton = $('#QuickyButton');
   DraftUpdateButton = $('#DraftUpdateButton');
   //SelectAll = $('#SelectAll');
-  Status = $('#Status');
   // Sometimes the browsers decide to save the latest state of the inputs
   // so override them
   MainText.removeAttr('disabled');
@@ -677,8 +680,6 @@ $(document).ready(function() {
   QuickyButton.removeAttr('disabled');
 
   // Input fields start empty; placeholders provide guidance
-
-  // Welcome text will be punctuated via nikudize() at end of ready
 
   // Bind letter and help hotkeys
   function keyEventHandler(evt) {
@@ -690,7 +691,7 @@ $(document).ready(function() {
       {
         case 72:
           $(Quicky).val('');
-          MeNaked.hide();
+          MeNaked.addClass('me-naked-hidden');
           HelpBox.show('slow');
           break;
         case 8:
@@ -755,7 +756,7 @@ $(document).ready(function() {
   }
 
   // Make the MainText keypress event validate its input
-  MainText.keypress(validate_Hebrew);
+  MainText.keydown(validate_Hebrew);
   // Setup the Answer click event to handle all text word clicks
   Answer.click(function(evt) {
     if ($(evt.target).is('span')) {
@@ -781,7 +782,7 @@ $(document).ready(function() {
   });
 
   // Make the Quicky keypress event validate its input
-  Quicky.keypress(validate_Hebrew);
+  Quicky.keydown(validate_Hebrew);
   // Setup the QuickyAns click event to handle all punctuation option
   // word clicks
   QuickyAns.click(function(evt) {
@@ -888,7 +889,7 @@ $(document).ready(function() {
   //  Answer.children().select();
   //});
 
-  // Punctuate intro text in the results area, then clear the input
+  // Punctuate welcome text on load
   MainText.val(
       '\u05D1\u05E8\u05D5\u05DB\u05D9\u05DD \u05D4\u05D1\u05D0\u05D9\u05DD' +
       ' \u05DC\u05E0\u05B4\u05E7\u05BB\u05D3\u05B7\u05D4\u05BC!\n' +
@@ -900,11 +901,6 @@ $(document).ready(function() {
       '\u05E9\u05DE\u05D5\u05E9 \u05DE\u05E6\u05DC\u05D7!'
   );
   nikudize(function() {
-    // Clear input after punctuation completes
     MainText.val('');
-    // Select 12th word and cycle its punctuation for demo
-    var mushtanot = Answer.children('span:nth-child(12)');
-    window.setTimeout(function() { mushtanot.click(); }, 1000);
-    window.setTimeout(function() { mushtanot.click(); }, 3000);
   });
 });
