@@ -1,4 +1,4 @@
-runtime: python312
+runtime: python313
 entrypoint: gunicorn -b :$PORT src.main:app
 handlers:
 - url: /.*
