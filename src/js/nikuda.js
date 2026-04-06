@@ -900,7 +900,6 @@ $(document).ready(function() {
       ' \u05D4\u05E6\u05E8\u05D5\u05E3 ctrl+shift+\u05D9\'.\n' +
       '\u05E9\u05DE\u05D5\u05E9 \u05DE\u05E6\u05DC\u05D7!'
   );
-  nikudize(function() {
-    MainText.val('');
-  });
+  nikudize(function() {});
+  MainText.val('');
 });
