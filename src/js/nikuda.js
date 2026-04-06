@@ -687,9 +687,9 @@ $(document).ready(function() {
 
   // Input fields start empty; placeholders provide guidance
 
-  // Clear text on focus
-  MainText.focus(function() { $(this).val(''); });
-  Quicky.focus(function() { $(this).val(''); });
+  // Clear placeholder on first focus
+  MainText.one('focus', function() { $(this).removeAttr('placeholder'); });
+  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); });
 
   // Bind letter and help hotkeys
   function keyEventHandler(evt) {
