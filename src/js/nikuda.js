@@ -687,6 +687,10 @@ $(document).ready(function() {
 
   // Input fields start empty; placeholders provide guidance
 
+  // Clear text on focus
+  MainText.focus(function() { $(this).val(''); });
+  Quicky.focus(function() { $(this).val(''); });
+
   // Bind letter and help hotkeys
   function keyEventHandler(evt) {
     if ((evt.shiftKey) && (evt.ctrlKey)) {
