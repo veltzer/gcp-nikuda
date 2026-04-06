@@ -23,7 +23,7 @@ $.ajaxSetup({
 // General purpose methods
 
 var toastTimeout;
-function show_to_user(text) {
+function show_toast(text) {
   var toast = $('#Toast');
   clearTimeout(toastTimeout);
   if (!text) {
@@ -34,6 +34,12 @@ function show_to_user(text) {
   toastTimeout = setTimeout(function() {
     toast.removeClass('toast-visible');
   }, 4000);
+}
+
+function show_to_user(text) {
+  if (text) {
+    console.log(text);
+  }
 }
 
 function fake_use(x) {
@@ -69,7 +75,7 @@ function validate_Hebrew(evt) {
   // evt.key gives the actual character for printable keys
   if (evt.key && evt.key.length === 1 && /[a-zA-Z]/.test(evt.key)) {
     // Do not allow english letters
-    show_to_user('אנא השתמש במקלדת עיברית...');
+    show_toast('אנא השתמש במקלדת עיברית...');
     evt.preventDefault();
   }
 }
