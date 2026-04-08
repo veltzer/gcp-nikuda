@@ -432,15 +432,25 @@ textarea.access_text {
 	.access {
 		flex: none;
 		width: 100%;
+		height: auto;
 		max-height: none;
 	}
 
 	.answer_text {
 		width: 100%;
+		height: auto;
+		min-height: 200px;
 		max-height: none;
 	}
 
 	.nikuda_label {
 		display: none;
+	}
+
+	.help {
+		width: 95vw;
+		max-height: 90vh;
+		padding: 20px;
+		font-size: 0.875rem;
 	}
 }
