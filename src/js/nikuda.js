@@ -933,13 +933,34 @@ $(document).ready(function() {
   //  Answer.children().select();
   //});
 
-  // Show pre-punctuated welcome text
-  Answer.html(
-      '\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B4\u05D9\u05DD \u05D4\u05B7\u05D1\u05BC\u05B8\u05D0\u05B4\u05D9\u05DD' +
-      ' \u05DC\u05E0\u05B4\u05E7\u05BB\u05D3\u05B7\u05D4\u05BC!<br>' +
-      '\u05DC\u05B8\u05D7\u05B2\u05E6\u05D5\u05BC \u05E2\u05B7\u05DC \u05D4\u05B7\u05DE\u05BC\u05B4\u05DC\u05BC\u05B4\u05D9\u05DD' +
-      ' \u05DB\u05BC\u05B8\u05D0\u05DF \u05D5\u05BC\u05E8\u05B0\u05D0\u05D5\u05BC \u05DB\u05BC\u05B5\u05D9\u05E6\u05B7\u05D3' +
-      ' \u05D4\u05B5\u05DF \u05DE\u05B7\u05E9\u05C1\u05B0\u05EA\u05B7\u05E0\u05BC\u05D5\u05B9\u05EA.<br>' +
-      '\u05E9\u05C1\u05B4\u05DE\u05BC\u05D5\u05BC\u05E9\u05C1 \u05DE\u05BB\u05E6\u05B0\u05DC\u05B8\u05D7!'
-  );
+  // Show pre-punctuated welcome text with clickable spans
+  Answer.children('span').remove();
+  Answer.text('');
+  var welcomeWords = [
+    '\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B4\u05D9\u05DD',
+    '\u05D4\u05B7\u05D1\u05BC\u05B8\u05D0\u05B4\u05D9\u05DD',
+    '\u05DC\u05E0\u05B4\u05E7\u05BB\u05D3\u05B7\u05D4\u05BC!',
+    '\n',
+    '\u05DC\u05B8\u05D7\u05B2\u05E6\u05D5\u05BC',
+    '\u05E2\u05B7\u05DC',
+    '\u05D4\u05B7\u05DE\u05BC\u05B4\u05DC\u05BC\u05B4\u05D9\u05DD',
+    '\u05DB\u05BC\u05B8\u05D0\u05DF',
+    '\u05D5\u05BC\u05E8\u05B0\u05D0\u05D5\u05BC',
+    '\u05DB\u05BC\u05B5\u05D9\u05E6\u05B7\u05D3',
+    '\u05D4\u05B5\u05DF',
+    '\u05DE\u05B7\u05E9\u05C1\u05B0\u05EA\u05B7\u05E0\u05BC\u05D5\u05B9\u05EA.',
+    '\n',
+    '\u05E9\u05C1\u05B4\u05DE\u05BC\u05D5\u05BC\u05E9\u05C1',
+    '\u05DE\u05BB\u05E6\u05B0\u05DC\u05B8\u05D7!'
+  ];
+  for (var i = 0; i < welcomeWords.length; i++) {
+    if (welcomeWords[i] === '\n') {
+      Answer.append('<br>');
+    } else {
+      Answer.append(print_nikudim([welcomeWords[i]]));
+      if (i + 1 < welcomeWords.length && welcomeWords[i + 1] !== '\n') {
+        Answer.append(' ');
+      }
+    }
+  }
 });
