@@ -209,6 +209,18 @@ function print_nikudim(nikudim) {
   // Set title attribute to hold all possible punctuations
   spElem.attr('title', nikudim);
 
+  // Mark unpunctuated words with red underline
+  var hasNikud = false;
+  for (var i = 0; i < nikudim.length; i++) {
+    if (nikudim[i].search(nikudRegExp) !== -1) {
+      hasNikud = true;
+      break;
+    }
+  }
+  if (!hasNikud) {
+    spElem.addClass('unpunctuated');
+  }
+
   // Set unique ID data of the span element
   runningID = runningID + 1;
   spElem.data('ID', runningID);
@@ -263,7 +275,6 @@ function nikudize(doneHandler) {
   Draft.text('');
 
   // Hide all other punctuation ways punctuate automatic and focus on text
-  HelpBox.hide('slow');
   MeNaked.addClass('me-naked-hidden');
 
   var txt = MainText.val();
@@ -322,7 +333,6 @@ function nikudize(doneHandler) {
         });
       },
         function() {
-        MainText.focus();
         doneHandler();
       });
 }
@@ -687,9 +697,25 @@ $(document).ready(function() {
 
   // Input fields start empty; placeholders provide guidance
 
-  // Clear placeholder on first focus
-  MainText.one('focus', function() { $(this).removeAttr('placeholder'); });
-  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); });
+  // Clear placeholder and value on first user focus
+  MainText.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); });
+  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); });
+
+  // Enter in MainText triggers NikudizeButton
+  MainText.keydown(function(evt) {
+    if (evt.key === 'Enter') {
+      evt.preventDefault();
+      NikudizeButton.click();
+    }
+  });
+
+  // Enter in Quicky triggers QuickyButton
+  Quicky.keydown(function(evt) {
+    if (evt.key === 'Enter') {
+      evt.preventDefault();
+      QuickyButton.click();
+    }
+  });
 
   // Bind letter and help hotkeys
   function keyEventHandler(evt) {
@@ -700,9 +726,6 @@ $(document).ready(function() {
       switch (keyNum)
       {
         case 72:
-          $(Quicky).val('');
-          MeNaked.addClass('me-naked-hidden');
-          HelpBox.show('slow');
           break;
         case 8:
           insert_Draft(' ');
@@ -765,13 +788,29 @@ $(document).ready(function() {
     $(document).keydown(keyEventHandler);
   }
 
+  // Escape key closes floating windows
+  $(document).keydown(function(evt) {
+    if (evt.key === 'Escape') {
+      HelpBox.hide('slow');
+      $('#MemorialBox').hide('slow');
+    }
+  });
+
+  // Click outside floater closes it
+  $(document).click(function(evt) {
+    if (HelpBox.is(':visible') && !$(evt.target).closest('#HelpBox, #HelpButton').length) {
+      HelpBox.hide('slow');
+    }
+    if ($('#MemorialBox').is(':visible') && !$(evt.target).closest('#MemorialBox, #MemorialButton').length) {
+      $('#MemorialBox').hide('slow');
+    }
+  });
+
   // Make the MainText keypress event validate its input
   MainText.keydown(validate_Hebrew);
   // Setup the Answer click event to handle all text word clicks
   Answer.click(function(evt) {
     if ($(evt.target).is('span')) {
-      HelpBox.hide('slow');
-
       // Change the original element reference and bold it
       if (origElemRef !== evt.target) {
         if (origElemRef !== false) {
@@ -797,8 +836,6 @@ $(document).ready(function() {
   // word clicks
   QuickyAns.click(function(evt) {
     if ($(evt.target).is('span')) {
-      HelpBox.hide('slow');
-
       // Set the answer punctuation and set the draft area appropriately
       change_nikud(evt.target);
     }
@@ -807,8 +844,6 @@ $(document).ready(function() {
   // Setup the Draft click event to handle all letter clicks
   Draft.click(function(evt) {
     if ($(evt.target).is('span')) {
-      HelpBox.hide('slow');
-
       if (letterElemRef !== evt.target) {
         if (letterElemRef !== false) {
           $(letterElemRef).css('font-weight', 'normal');
@@ -830,7 +865,6 @@ $(document).ready(function() {
     return function(evt) {
       fake_use(evt);
       if (Quicky.val().length > 0) {
-        HelpBox.hide('slow');
         if (origElemRef !== false) {
           if (trim(Quicky.val()) !==
               trim($(origElemRef).text()).replace(nikudRegExp, '')) {
@@ -906,8 +940,6 @@ $(document).ready(function() {
       '\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DE\u05DC\u05D9\u05DD' +
       ' \u05DB\u05D0\u05DF \u05D5\u05E8\u05D0\u05D5 \u05DB\u05D9\u05E6\u05D3' +
       ' \u05D4\u05DF \u05DE\u05E9\u05EA\u05E0\u05D5\u05EA.\n' +
-      '\u05DC\u05E2\u05D6\u05E8\u05D4 \u05E0\u05E1\u05D5 \u05D0\u05EA' +
-      ' \u05D4\u05E6\u05E8\u05D5\u05E3 ctrl+shift+\u05D9\'.\n' +
       '\u05E9\u05DE\u05D5\u05E9 \u05DE\u05E6\u05DC\u05D7!'
   );
   nikudize(function() {});

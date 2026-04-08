@@ -76,6 +76,12 @@ body {
 	border: none;
 }
 
+/* Unpunctuated words */
+.unpunctuated {
+	color: red;
+	text-decoration: underline wavy red;
+}
+
 /* Material text inputs */
 .access_text {
 	display: block;
@@ -198,6 +204,8 @@ textarea.access_text {
 	overflow-y: auto;
 	float: none;
 	margin: 0;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Suggestion dropdown */
@@ -359,7 +367,7 @@ textarea.access_text {
 	content: '';
 	position: fixed;
 	inset: 0;
-	background: rgb(0 0 0 / 50%);
+	background: #fff;
 	z-index: -1;
 }
 
@@ -384,6 +392,33 @@ textarea.access_text {
 
 ::-webkit-scrollbar-thumb:hover {
 	background: #9e9e9e;
+}
+
+/* Bottom buttons container */
+.bottom-buttons {
+	margin-top: auto;
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.bottom-buttons button {
+	padding: 8px 20px;
+	background: var(--md-primary);
+	color: #fff;
+	border: none;
+	border-radius: var(--md-radius);
+	font-family: inherit;
+	font-size: 0.9375rem;
+	font-weight: 500;
+	cursor: pointer;
+	box-shadow: var(--md-shadow-2);
+	transition: background var(--md-transition), box-shadow var(--md-transition);
+}
+
+.bottom-buttons button:hover {
+	background: var(--md-primary-dark);
+	box-shadow: var(--md-shadow-3);
 }
 
 /* Responsive */
