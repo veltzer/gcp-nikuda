@@ -1,3 +1,30 @@
+// Theme handling: light / dark / os (defaults to os).
+// Applied as early as possible (script is in <head>) to avoid a flash of the
+// wrong theme before the document is ready.
+var THEME_MODES = ['os', 'light', 'dark'];
+var THEME_META = {
+  os: {icon: 'brightness_auto', label: 'מערכת'},
+  light: {icon: 'light_mode', label: 'בהיר'},
+  dark: {icon: 'dark_mode', label: 'כהה'}
+};
+
+function get_theme() {
+  var stored;
+  try {
+    stored = window.localStorage.getItem('theme');
+  } catch (e) {
+    stored = null;
+  }
+  return (THEME_MODES.indexOf(stored) !== -1) ? stored : 'os';
+}
+
+function apply_theme(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+}
+
+// Apply the persisted theme immediately, before the body renders.
+apply_theme(get_theme());
+
 // references
 var origElemRef = false;
 var draftElemRef = false;
@@ -926,6 +953,37 @@ $(document).ready(function() {
   DraftUpdateButton.click(function(evt) {
     fake_use(evt);
     update_Draft();
+  });
+
+  // Theme toggle: cycle os -> light -> dark -> os, persist, and update button
+  var ThemeToggle = $('#ThemeToggle');
+  var ThemeIcon = $('#ThemeIcon');
+  var ThemeLabel = $('#ThemeLabel');
+
+  function refresh_theme_button(mode) {
+    var meta = THEME_META[mode];
+    ThemeIcon.text(meta.icon);
+    ThemeLabel.text(meta.label);
+  }
+
+  function set_theme(mode) {
+    apply_theme(mode);
+    try {
+      window.localStorage.setItem('theme', mode);
+    } catch (e) {
+      fake_use(e);
+    }
+    refresh_theme_button(mode);
+  }
+
+  // Reflect the theme that was applied early in the page load
+  refresh_theme_button(get_theme());
+
+  ThemeToggle.click(function(evt) {
+    fake_use(evt);
+    var current = get_theme();
+    var next = THEME_MODES[(THEME_MODES.indexOf(current) + 1) % THEME_MODES.length];
+    set_theme(next);
   });
 
   //SelectAll.click(function(evt) {

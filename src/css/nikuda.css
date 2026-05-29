@@ -29,6 +29,67 @@
 	--md-shadow-3: 0 10px 20px rgb(0 0 0 / 19%), 0 6px 6px rgb(0 0 0 / 23%);
 	--md-radius: 8px;
 	--md-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+	/* Surface-derived colors (overridden in dark mode) */
+	--md-disabled-bg: #f5f5f5;
+	--md-disabled-btn-bg: #bdbdbd;
+	--md-toast-bg: #323232;
+	--md-blockquote-bg: #f5f5fa;
+	--md-scrollbar-thumb: #bdbdbd;
+	--md-scrollbar-thumb-hover: #9e9e9e;
+	--md-logo-filter: invert(1);
+}
+
+/* Explicit dark mode (theme toggle set to "dark") */
+:root[data-theme="dark"] {
+	--md-primary: #7986cb;
+	--md-primary-dark: #9fa8da;
+	--md-primary-light: #3949ab;
+	--md-accent: #ff8a65;
+	--md-accent-dark: #ff7043;
+	--md-bg: #121212;
+	--md-surface: #1e1e1e;
+	--md-on-surface: #e0e0e0;
+	--md-on-surface-secondary: #9e9e9e;
+	--md-divider: #373737;
+	--md-shadow-1: 0 1px 3px rgb(0 0 0 / 50%), 0 1px 2px rgb(0 0 0 / 60%);
+	--md-shadow-2: 0 3px 6px rgb(0 0 0 / 55%), 0 3px 6px rgb(0 0 0 / 65%);
+	--md-shadow-3: 0 10px 20px rgb(0 0 0 / 60%), 0 6px 6px rgb(0 0 0 / 65%);
+	--md-disabled-bg: #2a2a2a;
+	--md-disabled-btn-bg: #424242;
+	--md-toast-bg: #424242;
+	--md-blockquote-bg: #262633;
+	--md-scrollbar-thumb: #555;
+	--md-scrollbar-thumb-hover: #777;
+	--md-logo-filter: none;
+}
+
+/* OS-aware dark mode — applies only when the toggle is following the OS
+   (data-theme="os" or unset), so an explicit light/dark choice always wins. */
+@media (prefers-color-scheme: dark) {
+	:root[data-theme="os"],
+	:root:not([data-theme]) {
+		--md-primary: #7986cb;
+		--md-primary-dark: #9fa8da;
+		--md-primary-light: #3949ab;
+		--md-accent: #ff8a65;
+		--md-accent-dark: #ff7043;
+		--md-bg: #121212;
+		--md-surface: #1e1e1e;
+		--md-on-surface: #e0e0e0;
+		--md-on-surface-secondary: #9e9e9e;
+		--md-divider: #373737;
+		--md-shadow-1: 0 1px 3px rgb(0 0 0 / 50%), 0 1px 2px rgb(0 0 0 / 60%);
+		--md-shadow-2: 0 3px 6px rgb(0 0 0 / 55%), 0 3px 6px rgb(0 0 0 / 65%);
+		--md-shadow-3: 0 10px 20px rgb(0 0 0 / 60%), 0 6px 6px rgb(0 0 0 / 65%);
+		--md-disabled-bg: #2a2a2a;
+		--md-disabled-btn-bg: #424242;
+		--md-toast-bg: #424242;
+		--md-blockquote-bg: #262633;
+		--md-scrollbar-thumb: #555;
+		--md-scrollbar-thumb-hover: #777;
+		--md-logo-filter: none;
+	}
 }
 
 html {
@@ -56,7 +117,7 @@ body {
 	opacity: 0.15;
 	z-index: 1;
 	max-width: 500px;
-	filter: invert(1);
+	filter: var(--md-logo-filter);
 	pointer-events: none;
 	user-select: none;
 }
@@ -107,7 +168,7 @@ body {
 }
 
 .access_text:disabled {
-	background: #f5f5f5;
+	background: var(--md-disabled-bg);
 	color: var(--md-on-surface-secondary);
 }
 
@@ -139,7 +200,7 @@ textarea.access_text {
 }
 
 .access_button:disabled {
-	background: #bdbdbd;
+	background: var(--md-disabled-btn-bg);
 	color: #fff;
 	cursor: not-allowed;
 	box-shadow: none;
@@ -289,7 +350,7 @@ textarea.access_text {
 	left: 50%;
 	transform: translateX(-50%) translateY(100px);
 	padding: 12px 24px;
-	background: #323232;
+	background: var(--md-toast-bg);
 	color: #fff;
 	font-size: 0.875rem;
 	border-radius: var(--md-radius);
@@ -348,7 +409,7 @@ textarea.access_text {
 	margin: 12px 16px;
 	padding: 12px 16px;
 	border-right: 4px solid var(--md-primary-light);
-	background: #f5f5fa;
+	background: var(--md-blockquote-bg);
 	border-radius: 0 var(--md-radius) var(--md-radius) 0;
 }
 
@@ -367,7 +428,7 @@ textarea.access_text {
 	content: '';
 	position: fixed;
 	inset: 0;
-	background: #fff;
+	background: var(--md-surface);
 	z-index: -1;
 }
 
@@ -386,12 +447,12 @@ textarea.access_text {
 }
 
 ::-webkit-scrollbar-thumb {
-	background: #bdbdbd;
+	background: var(--md-scrollbar-thumb);
 	border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: #9e9e9e;
+	background: var(--md-scrollbar-thumb-hover);
 }
 
 /* Bottom buttons container */
@@ -419,6 +480,42 @@ textarea.access_text {
 .bottom-buttons button:hover {
 	background: var(--md-primary-dark);
 	box-shadow: var(--md-shadow-3);
+}
+
+/* Theme toggle button (light / dark / os) */
+.theme-toggle {
+	position: fixed;
+	top: 16px;
+	left: 16px;
+	z-index: 150;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	background: var(--md-surface);
+	color: var(--md-on-surface);
+	border: 1px solid var(--md-divider);
+	border-radius: var(--md-radius);
+	font-family: "Noto Sans Hebrew", Roboto, Arial, sans-serif;
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+	box-shadow: var(--md-shadow-1);
+	transition: background var(--md-transition), box-shadow var(--md-transition), transform var(--md-transition);
+}
+
+.theme-toggle:hover {
+	box-shadow: var(--md-shadow-2);
+	transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+	transform: translateY(0);
+}
+
+.theme-toggle .material-icons {
+	font-size: 1.25rem;
+	line-height: 1;
 }
 
 /* Responsive */
