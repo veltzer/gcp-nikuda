@@ -482,42 +482,6 @@ textarea.access_text {
 	box-shadow: var(--md-shadow-3);
 }
 
-/* Theme toggle button (light / dark / os) */
-.theme-toggle {
-	position: fixed;
-	top: 16px;
-	left: 16px;
-	z-index: 150;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 8px 16px;
-	background: var(--md-surface);
-	color: var(--md-on-surface);
-	border: 1px solid var(--md-divider);
-	border-radius: var(--md-radius);
-	font-family: "Noto Sans Hebrew", Roboto, Arial, sans-serif;
-	font-size: 0.875rem;
-	font-weight: 500;
-	cursor: pointer;
-	box-shadow: var(--md-shadow-1);
-	transition: background var(--md-transition), box-shadow var(--md-transition), transform var(--md-transition);
-}
-
-.theme-toggle:hover {
-	box-shadow: var(--md-shadow-2);
-	transform: translateY(-1px);
-}
-
-.theme-toggle:active {
-	transform: translateY(0);
-}
-
-.theme-toggle .material-icons {
-	font-size: 1.25rem;
-	line-height: 1;
-}
-
 /* Responsive */
 @media (width <= 900px) {
 	body {

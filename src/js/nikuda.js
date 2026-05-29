@@ -3,9 +3,9 @@
 // wrong theme before the document is ready.
 var THEME_MODES = ['os', 'light', 'dark'];
 var THEME_META = {
-  os: {icon: 'brightness_auto', label: 'מערכת'},
-  light: {icon: 'light_mode', label: 'בהיר'},
-  dark: {icon: 'dark_mode', label: 'כהה'}
+  os: {label: 'מערכת'},
+  light: {label: 'בהיר'},
+  dark: {label: 'כהה'}
 };
 
 function get_theme() {
@@ -957,13 +957,10 @@ $(document).ready(function() {
 
   // Theme toggle: cycle os -> light -> dark -> os, persist, and update button
   var ThemeToggle = $('#ThemeToggle');
-  var ThemeIcon = $('#ThemeIcon');
   var ThemeLabel = $('#ThemeLabel');
 
   function refresh_theme_button(mode) {
-    var meta = THEME_META[mode];
-    ThemeIcon.text(meta.icon);
-    ThemeLabel.text(meta.label);
+    ThemeLabel.text(THEME_META[mode].label);
   }
 
   function set_theme(mode) {
