@@ -5,8 +5,8 @@ Main code of the nikua website
 
 import bisect
 import json
-from flask import Flask, request, jsonify
 
+from flask import Flask, jsonify, request
 
 app = Flask(__name__, static_folder="", static_url_path="/static")
 
