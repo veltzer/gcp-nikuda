@@ -1,19 +1,28 @@
-## nikuda
-
-version: 0.0.1
+# *nikuda* project by Mark Veltzer
 
 description: Nikuda web site
 
-website: https://veltzer.github.io/nikuda
+project website: https://veltzer.github.io/nikuda
 
-## Build
+author: Mark Veltzer
+
+version: 0.0.1
+
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+
+## github
+
+![License](https://img.shields.io/github/license/veltzer/nikuda)
+
+## build
 
 ![build](https://github.com/veltzer/nikuda/workflows/build/badge.svg)
 
-Nikuda is a web site intended to allow
-users to get punctuation for hebrew words, sentences and paragraphs.
-## Contact
+## contact me
 
-chat with me at [![gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/veltzer/mark.veltzer)
+[mailto](mailto:mark.veltzer@gmail.com)
+![gitter](https://img.shields.io/gitter/room/veltzer/mark.veltzer)
+![discord](https://img.shields.io/discord/719336281624281119)
+![discord](https://img.shields.io/discord/719336282194444302)
 
 Mark Veltzer, Copyright © 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026
