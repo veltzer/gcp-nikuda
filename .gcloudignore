@@ -18,3 +18,7 @@
 /LICENSE
 /requirements.thawed.txt
 /.??*
+
+# the deploy stamp is gitignored (so included above via .gitignore) but must
+# be uploaded: it is what the app/version endpoint serves
+!/build_info.json
