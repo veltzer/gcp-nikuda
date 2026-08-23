@@ -14,6 +14,16 @@ def test_get():
     assert b"html" in response.body.lower()
 
 
+def test_version():
+    """ GET /app/version reports the deploy stamp and the GAE version id. """
+    application = webtest.TestApp(main.app)
+
+    response = application.get('/app/version')
+    assert response.status_int == 200
+    for key in ("deploy_date", "git_describe", "gae_version"):
+        assert key in response.json
+
+
 def test_suggest():
     """ POST /app/suggest completes a prefix from the dictionary. """
     application = webtest.TestApp(main.app)

@@ -343,6 +343,15 @@ textarea.access_text {
 	background: rgb(92 107 192 / 4%);
 }
 
+/* Deployed-version stamp (filled by nikuda.js from app/version) */
+#VersionInfo {
+	direction: ltr;
+	text-align: center;
+	font-size: 0.6875rem;
+	color: var(--md-on-surface-secondary);
+	padding: 4px 0 8px;
+}
+
 /* Toast notification */
 #Toast {
 	position: fixed;

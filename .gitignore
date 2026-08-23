@@ -164,3 +164,6 @@ project/
 
 # rsconstruct
 /.rsconstruct/
+
+# deploy stamp written by gcloud_deploy.sh
+/build_info.json
