@@ -9,9 +9,8 @@ import os
 
 from flask import Flask, abort, jsonify, request, send_from_directory
 
-# The only directories served over /static/; keep in sync with the
-# static_files handlers in app.yaml. Everything else under src/ (main.py,
-# data/) is not reachable over HTTP.
+# The only directories served over /static/. Everything else under src/
+# (main.py, data/) is not reachable over HTTP.
 ASSET_DIRS = {"css", "images", "js", "js_tp"}
 
 app = Flask(__name__, static_folder=None)
@@ -25,7 +24,7 @@ def load_data():
 
 
 def load_build_info():
-    """ Load the deploy stamp written by gcloud_deploy.sh; absent in dev. """
+    """ Load the deploy stamp written by scripts/deploy.sh; absent in dev. """
     try:
         with open("build_info.json", encoding="UTF8") as fp:
             info = json.load(fp)
@@ -52,7 +51,8 @@ def index():
 @app.route("/app/version", methods=["GET"])
 def version():
     info = dict(app.config["build_info"])
-    info["gae_version"] = os.environ.get("GAE_VERSION", "local")
+    # Cloud Run injects the serving revision name at runtime.
+    info["revision"] = os.environ.get("K_REVISION", "local")
     return jsonify(info)
 
 

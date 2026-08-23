@@ -1019,11 +1019,11 @@ $(document).ready(function() {
     }
   }
 
-  // Show which version is serving: git describe, deploy date and the GAE
-  // version id, stamped by gcloud_deploy.sh and served by app/version.
+  // Show which version is serving: git describe, deploy date and the Cloud
+  // Run revision, stamped by scripts/deploy.sh and served by app/version.
   $.getJSON('app/version', function(info) {
     $('#VersionInfo').text(
         info.git_describe + ' · ' + info.deploy_date + ' · ' +
-        info.gae_version);
+        info.revision);
   });
 });
