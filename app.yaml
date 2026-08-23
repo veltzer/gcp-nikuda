@@ -1,6 +1,12 @@
-runtime: python313
-entrypoint: gunicorn -b :$PORT src.main:app
+runtime: python314
+entrypoint: gunicorn -b :$PORT -w 2 --threads 4 src.main:app
 handlers:
+# Static assets are served by App Engine's frontend, not the Flask app.
+# Only the asset directories are exposed; everything else (including
+# src/main.py and src/data) still routes through the app.
+- url: /static/((css|images|js|js_tp)/.*)
+  static_files: src/\1
+  upload: src/(css|images|js|js_tp)/.*
 - url: /.*
   script: auto
 automatic_scaling:

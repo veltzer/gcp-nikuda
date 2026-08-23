@@ -5,6 +5,13 @@
 [processor.tera]
 src_dirs = ["tera.templates"]
 
+# requirements.txt is the App Engine deploy manifest: only scan src/ so
+# test-only imports (webtest, main) stay out of production, and add
+# gunicorn, which the app.yaml entrypoint invokes but no code imports.
+[processor.requirements]
+src_dirs = ["src"]
+extra = ["gunicorn"]
+
 # Runtime deps so CI installs what the code and tests import (the
 # gcp-machines pattern).
 [dependencies]

@@ -6,21 +6,36 @@ Main code of the nikua website
 import bisect
 import json
 
-from flask import Flask, jsonify, request
+from flask import Flask, abort, jsonify, request, send_from_directory
 
-app = Flask(__name__, static_folder="", static_url_path="/static")
+# The only directories served over /static/; keep in sync with the
+# static_files handlers in app.yaml. Everything else under src/ (main.py,
+# data/) is not reachable over HTTP.
+ASSET_DIRS = {"css", "images", "js", "js_tp"}
 
-@app.before_request
+app = Flask(__name__, static_folder=None)
+
 def load_data():
+    """ Load the nikud dictionary once at startup rather than per request. """
     with open("src/data/all.json", encoding="UTF8") as fp:
         d = json.load(fp)
-        app.config["dict"] = d
-        app.config["sorted"] = sorted(d.keys())
+    app.config["dict"] = d
+    app.config["sorted"] = sorted(d.keys())
+
+
+load_data()
+
+@app.route("/static/<directory>/<path:filename>", methods=["GET"])
+def static_asset(directory, filename):
+    if directory not in ASSET_DIRS:
+        abort(404)
+    return send_from_directory(directory, filename)
+
 
 # this route is not needed in production
 @app.route("/", methods=["GET"])
 def index():
-    return app.send_static_file("html/index.html")
+    return send_from_directory("html", "index.html")
 
 @app.route("/app/suggest", methods=["POST"])
 def suggest():
