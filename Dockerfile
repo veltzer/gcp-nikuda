@@ -4,8 +4,13 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Dependencies come from [project].dependencies in pyproject.toml; uv's
+# `pip install -r pyproject.toml` installs them without building the
+# (non-installable, package = false) project itself.
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir uv \
+    && uv pip install --system --no-cache -r pyproject.toml \
+    && pip uninstall -y uv
 
 # The app resolves src/data and its static asset dirs relative to the
 # repo root, so preserve the src/ layout under /app.

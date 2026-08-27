@@ -32,10 +32,6 @@ src_dirs = ["src", "scripts", "config", "tests"]
 [processor.mypy]
 src_dirs = ["src", "scripts", "config", "tests"]
 
-[processor.requirements]
-src_dirs = ["src"]
-extra = ["gunicorn"]
-
 [processor.pytest]
 src_dirs = ["tests"]
 
@@ -60,12 +56,3 @@ src_dirs = ["src"]
 
 [processor.tidy]
 src_dirs = ["src"]
-
-# Runtime deps so CI installs what the code and tests import (the
-# gcp-machines pattern).
-[dependencies]
-pip = [
-    "flask",
-    "types-WebTest",
-    "webtest",
-]

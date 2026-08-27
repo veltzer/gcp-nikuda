@@ -1,6 +1,5 @@
-# Generated to let `uv sync` install this repo's Python dependencies.
-# The authoritative dependency list is [dependencies].pip in
-# rsconstruct.toml; keep the two in sync when editing.
+# Authoritative dependency list for this repo; `rsconstruct tools
+# install-deps` and `uv sync` both read it.
 
 [project]
 name = "gcp-nikuda"
@@ -8,6 +7,7 @@ version = "0.0.0"
 requires-python = ">=3.12"
 dependencies = [
     "flask",
+    "gunicorn",
     "types-WebTest",
     "webtest",
 ]
