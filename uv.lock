@@ -158,25 +158,25 @@ wheels = [
 
 [[package]]
 name = "types-webob"
-version = "1.8.11.20260807"
+version = "1.8.11.20260827"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f9/45/e4d9b3e5e3114d066e8f452e25f33367a34a6b646c911069f9f0d0a381aa/types_webob-1.8.11.20260807.tar.gz", hash = "sha256:fcc494d728bcfce59d47c9bc250a37739c7afc5da7e9c2882fe14909687f2081", size = 24062, upload-time = "2026-08-07T04:16:50.29Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/a1/1a59336b438fc6dbc704e5c6cac5ff142695d7ad57d4277ac23c9ee49719/types_webob-1.8.11.20260827.tar.gz", hash = "sha256:bf64dd5fc0a8f96372614f7c7f064ef436a0ee32cb0b7b3e66682a15a0c65364", size = 24180, upload-time = "2026-08-27T12:06:25.517Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/84/fb8df6dd0a6bcd21c75e2a8a58f78515f778f9e2ca69a6ff2fa83a941255/types_webob-1.8.11.20260807-py3-none-any.whl", hash = "sha256:b65a80ac9fa7dd9d22578525c67e89e70a0fa2dc2633eef90a1f555bdf74931f", size = 28680, upload-time = "2026-08-07T04:16:49.442Z" },
+    { url = "https://files.pythonhosted.org/packages/38/98/4c6432692652554556ab468ac03cacadeb752fb736d9d85f86757fbda606/types_webob-1.8.11.20260827-py3-none-any.whl", hash = "sha256:11f34c64d2076013abd327c9a1d62e0a4f2ae07c59ceeec27a7e978f49d89f29", size = 28704, upload-time = "2026-08-27T12:06:24.675Z" },
 ]
 
 [[package]]
 name = "types-webtest"
-version = "3.0.0.20260612"
+version = "3.0.0.20260827"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "types-waitress" },
     { name = "types-webob" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/af/e7/3c190fadf35abf3e1a258e3de95f9620b57b5d63f6f2155bcf402ca893c4/types_webtest-3.0.0.20260612.tar.gz", hash = "sha256:eb7e255c5154503ee972ee1b06fa634e6156a4c22450ff685d2ca4003fa7fe2d", size = 11422, upload-time = "2026-06-12T06:22:38.821Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/dc/8a/7ba19df1544c12f092dfd1657d8d0e86810e9cf1a3af6e24d1c7b6b9b2e0/types_webtest-3.0.0.20260827.tar.gz", hash = "sha256:c50d60adb6edbd96d751fbe22ad7d63dcd8ae84e86bf915add54fc1a8c0c2dd1", size = 11567, upload-time = "2026-08-27T12:07:14.514Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/fd/2455f556db33f42ee9f0eb5dae99e5ae310de0ab4ea8cd6b6e70ac8700a5/types_webtest-3.0.0.20260612-py3-none-any.whl", hash = "sha256:8093fc2b5ddd55e48587030f450a667f1aa0fe92705124b7e9cd868a90edbf40", size = 13536, upload-time = "2026-06-12T06:22:37.697Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/cc/778197b67be7f228e3ae719feee0c8b31146529bc0133987a9f42ffc06bb/types_webtest-3.0.0.20260827-py3-none-any.whl", hash = "sha256:a35ea8577cece234fa4070a56f06888fe5d60d09d6fc7a5ffb0cb3a166ba24af", size = 13584, upload-time = "2026-08-27T12:07:13.716Z" },
 ]
 
 [[package]]
