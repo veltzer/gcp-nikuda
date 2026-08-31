@@ -152,7 +152,6 @@ source = { virtual = "." }
 dependencies = [
     { name = "flask" },
     { name = "gunicorn" },
-    { name = "types-webtest" },
     { name = "webtest" },
 ]
 
@@ -162,13 +161,13 @@ dev = [
     { name = "pylint" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "types-webtest" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "flask" },
     { name = "gunicorn" },
-    { name = "types-webtest" },
     { name = "webtest" },
 ]
 
@@ -178,6 +177,7 @@ dev = [
     { name = "pylint" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "types-webtest" },
 ]
 
 [[package]]

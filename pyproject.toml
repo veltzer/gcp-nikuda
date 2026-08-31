@@ -8,7 +8,6 @@ requires-python = ">=3.14"
 dependencies = [
     "flask",
     "gunicorn",
-    "types-WebTest",
     "webtest",
 ]
 
@@ -18,6 +17,7 @@ dev = [
     "pylint",
     "pytest",
     "ruff",
+    "types-WebTest",
 ]
 
 [tool.uv]
