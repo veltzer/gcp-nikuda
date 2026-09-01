@@ -1,3 +1,6 @@
+# What `gcloud run deploy --source .` uploads to Cloud Build: only the
+# Dockerfile and what it COPYs (pyproject.toml, uv.lock, src/) need to go up.
+
 # ignore everything that .gitignore ignores
 #!include:.gitignore
 
@@ -15,6 +18,7 @@
 /package.json
 /package-lock.json
 /templates
+/tera.templates
 /LICENSE
 /requirements.thawed.txt
 /.??*
