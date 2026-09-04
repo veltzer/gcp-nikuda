@@ -1,5 +1,5 @@
 # Cloud Run image for the nikuda Flask app, built by Cloud Build via
-# `gcloud run deploy --source .` (see scripts/deploy.sh).
+# `gcloud run deploy --source .` (see gcloud_run_deploy.sh from utils-bash).
 FROM python:3.14-slim
 
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir uv \
 # The app resolves src/data and its static asset dirs relative to the
 # repo root, so preserve the src/ layout under /app.
 COPY src/ src/
-# The deploy stamp is written by scripts/deploy.sh just before deploying;
+# The deploy stamp is written by gcloud_run_deploy.sh just before deploying;
 # building without it fails on purpose so an unstamped image never ships.
 COPY build_info.json ./
 
