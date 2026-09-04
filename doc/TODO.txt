@@ -6,27 +6,16 @@
 
 performance optimization:
 - can I control types of machines and their number?
-	yes you can I already have a limit on the number of machines in the app.yaml.
+	yes: --max-instances (and --cpu/--memory if needed) in gcp_run_args in .gcp.conf.
 - maybe I need to compress the files I upload (the svg files say).
 - maybe I need to remove the parts of the app that I don't need.
 	(main.py).
-- gunicorn is run by gae by default. Is there a better one?
+- gunicorn is what the Dockerfile runs. Is there a better one?
 - I wrote the app with flask, is there a faster one.
-- find a way to list all files deployed to the app so that I could
-	see that I'm not deploying any files I am not supposed to.
-
-- the makefile does not work because I don't have a make_helper.
-	get a make_helper to work with python module pymakehelper.
-
 - stop using unicode directly in nikuda.js. Many text editors and even browsers
 	do not know how to display files like these and allow you to comfortably
 	edit them. instead put the unicode values (\uXXXX).
 	use some tool to do it.
-- fix the warning I get about unicode when I do 'gcloud_deploy.sh'.
-- when I do 'gcloud_deploy.sh' it curretly upload all files (about 30) of the app
-	to gcloud. It wasn't always so. There was a gcs bucket that held the previous
-	version and only uploaded the diff. How can I get that functionality
-	back?
 - revamp the user interface to a new clean bright colored and easy on the eyes one.
 - add a new page in the site with word bubbles.
 	every word will be connected to similar words
@@ -35,7 +24,8 @@ performance optimization:
 - all hebrew string should be taken out of the javascript code
 	and then the javascript code should be made ascii again and pass js checks.
 - compress the javascript code to make everything run faster.
-	or maybe GAE does this automatically? check this.
+	Cloud Run does not do this for us; it would have to happen in the Dockerfile
+	build or in front of the service (CDN).
 - compress the css and the html too.
 - make sure that jquery is the compressed version.
 - use a new version of jquery.

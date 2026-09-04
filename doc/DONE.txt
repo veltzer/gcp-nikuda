@@ -7,3 +7,11 @@ Sun Feb 25 09:05:25 IST 2018
 Sun Feb 25 09:18:56 IST 2018
 	'make' now works.
 	Mark Veltzer
+Fri Sep  4 2026
+	moved from App Engine to Cloud Run: gcloud_run_deploy.sh (utils-bash)
+	builds the Dockerfile with Cloud Build; the App Engine only items
+	(deploy unicode warning, incremental upload via the gcs bucket) are gone
+	with it. What gets uploaded is controlled by .gcloudignore and can be
+	checked with gcloud_will_upload.sh. The makefile is gone too; rsconstruct
+	is the build.
+	Mark Veltzer
