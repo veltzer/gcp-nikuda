@@ -57,3 +57,35 @@ src_dirs = ["src"]
 # lint the GitHub Actions workflow files with actionlint
 [processor.actionlint]
 src_dirs = [".github/workflows"]
+
+# ─── markdown ────────────────────────────────────────────────────────────────
+
+[processor.rumdl]
+src_files = ["README.md"]
+
+# ─── docker ──────────────────────────────────────────────────────────────────
+
+[processor.hadolint]
+src_files = ["Dockerfile"]
+
+# ─── json ────────────────────────────────────────────────────────────────────
+
+[processor.ijsonlint]
+src_dirs = ["db", "src/data"]
+src_files = ["package.json"]
+
+# ─── xml / svg ───────────────────────────────────────────────────────────────
+
+[processor.xmllint]
+src_dirs = ["src/images"]
+
+# ─── css ─────────────────────────────────────────────────────────────────────
+
+[processor.stylelint]
+src_dirs = ["src/css"]
+
+# ─── javascript ──────────────────────────────────────────────────────────────
+
+[processor.eslint]
+src_dirs = ["src/js"]
+args = ["-c", ".eslint.config.js"]

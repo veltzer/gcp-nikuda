@@ -31,8 +31,8 @@ var draftElemRef = false;
 var letterElemRef = false;
 
 // useful regular expressions
-var nikudABRegExp = /[אבגדהוזחטיכךלמםנןסעפףצץקרשתְֱֲֳִֵֶַָֹֻּׁׂ]/g;
-var notNikudABRegExp = /[^אבגדהוזחטיכךלמםנןסעפףצץקרשתְֱֲֳִֵֶַָֹֻּׁׂ]/g;
+var nikudABRegExp = /(?:[אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])/g;
+var notNikudABRegExp = /(?![אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])[\s\S]/g;
 var sinNikudRegExp = /[ׁׂ]/g;
 var dageshRegExp = /ּ/g;
 var notSinNikudRegExp = /[ְֱֲֳִֵֶַָֹֻ]/g;
