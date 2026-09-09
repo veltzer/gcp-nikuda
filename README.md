@@ -1,11 +1,11 @@
 <!-- This file is generated. Do not edit it by hand: your changes will be
      lost on the next build. Edit the template it is rendered from, or the
      values that template reads, and build again. -->
-# *nikuda* project by Mark Veltzer
+# *gcp-nikuda* project by Mark Veltzer
 
 description: Nikuda web site
 
-project website: https://veltzer.github.io/nikuda
+project website: https://veltzer.github.io/gcp-nikuda
 
 author: Mark Veltzer
 
@@ -15,11 +15,11 @@ version: 0.0.1
 
 ## github
 
-![License](https://img.shields.io/github/license/veltzer/nikuda)
+![License](https://img.shields.io/github/license/veltzer/gcp-nikuda)
 
 ## build
 
-![build](https://github.com/veltzer/nikuda/workflows/build/badge.svg)
+![build](https://github.com/veltzer/gcp-nikuda/workflows/build/badge.svg)
 
 ## contact me
 
