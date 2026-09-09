@@ -21,13 +21,13 @@ dep_auto = [
 src_dirs = ["tera.templates"]
 
 [processor.ruff]
-src_dirs = ["src", "scripts", "config", "tests"]
+src_dirs = ["src", "config", "tests"]
 
 [processor.pylint]
-src_dirs = ["src", "scripts", "config", "tests"]
+src_dirs = ["src", "config", "tests"]
 
 [processor.mypy]
-src_dirs = ["src", "scripts", "config", "tests"]
+src_dirs = ["src", "config", "tests"]
 
 [processor.pytest]
 src_dirs = ["tests"]
@@ -35,7 +35,7 @@ src_dirs = ["tests"]
 # ─── shell ───────────────────────────────────────────────────────────────────
 
 [processor.shellcheck]
-src_dirs = ["scripts", "src", "misc", "config"]
+src_dirs = ["src", "misc", "config"]
 args = ["--severity=error", "--shell=bash"]
 
 # ─── lua ─────────────────────────────────────────────────────────────────────
