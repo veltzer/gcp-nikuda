@@ -1,9 +1,7 @@
 {
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "htmlhint": "latest",
-    "jshint": "latest",
     "stylelint": "latest",
     "stylelint-config-standard": "latest"
   }
