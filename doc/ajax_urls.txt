@@ -1,7 +1,7 @@
 This is an analysis of the url issues embedded in ajax scripts in nikuda
 
 If the urls will be absolute (start with /) then we could not deploy the applications
-on machines where nikuda is not in the toplevel directory (say https://veltzer.net/nikuda/).
+on machines where nikuda is not in the toplevel directory (say https://veltzer.github.io/nikuda/).
 
 This means the url must be relative.
 
