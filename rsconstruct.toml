@@ -50,9 +50,6 @@ src_dirs = ["config"]
 [processor.taplo]
 src_files = [".rumdl.toml", "pyproject.toml", "rsconstruct.toml"]
 
-[processor.htmlhint]
-src_dirs = ["src"]
-
 [processor.tidy]
 src_dirs = ["src"]
 
@@ -74,7 +71,6 @@ src_files = ["Dockerfile"]
 
 [processor.ijsonlint]
 src_dirs = ["db", "src/data"]
-src_files = ["package.json"]
 
 # ─── xml / svg ───────────────────────────────────────────────────────────────
 
@@ -83,11 +79,14 @@ src_dirs = ["src/images"]
 
 # ─── css ─────────────────────────────────────────────────────────────────────
 
-[processor.stylelint]
+# Only .css is passed: biome.jsonc turns biome's JavaScript and JSON linters
+# off, oxlint covers JavaScript and ijsonlint covers JSON.
+[processor.biome]
 src_dirs = ["src/css"]
+src_extensions = [".css"]
 
 # ─── javascript ──────────────────────────────────────────────────────────────
 
-[processor.eslint]
+[processor.oxlint]
 src_dirs = ["src/js"]
-args = ["-c", ".eslint.config.js"]
+args = ["-c", ".oxlintrc.json"]

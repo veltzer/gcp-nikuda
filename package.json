@@ -1,8 +1,0 @@
-{
-  "dependencies": {},
-  "devDependencies": {
-    "htmlhint": "latest",
-    "stylelint": "latest",
-    "stylelint-config-standard": "latest"
-  }
-}
