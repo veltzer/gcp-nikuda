@@ -1,4 +1,4 @@
-# Authoritative dependency list for this repo; `rsconstruct tools
+# Authoritative dependency list for this repo; `rsconstruct tool
 # install-deps` and `uv sync` both read it.
 
 [project]
