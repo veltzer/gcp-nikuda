@@ -13,11 +13,15 @@ from flask import Flask, abort, jsonify, request, send_from_directory
 # (main.py, data/) is not reachable over HTTP.
 ASSET_DIRS = {"css", "images", "js", "js_tp"}
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+# build_info.json is written next to src/, at the repo (and image) root.
+BUILD_INFO = os.path.join(os.path.dirname(HERE), "build_info.json")
+
 app = Flask(__name__, static_folder=None)
 
 def load_data():
     """ Load the nikud dictionary once at startup rather than per request. """
-    with open("src/data/all.json", encoding="UTF8") as fp:
+    with open(os.path.join(HERE, "data", "all.json"), encoding="UTF8") as fp:
         d = json.load(fp)
     app.config["dict"] = d
     app.config["sorted"] = sorted(d.keys())
@@ -26,7 +30,7 @@ def load_data():
 def load_build_info():
     """ Load the deploy stamp written by gcloud_run_deploy.sh; absent in dev. """
     try:
-        with open("build_info.json", encoding="UTF8") as fp:
+        with open(BUILD_INFO, encoding="UTF8") as fp:
             info = json.load(fp)
     except FileNotFoundError:
         info = {"deploy_date": "unknown", "git_describe": "dev"}

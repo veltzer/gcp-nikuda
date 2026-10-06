@@ -27,3 +27,7 @@ package = false
 mypy_path = "src:python:scripts"
 explicit_package_bases = true
 namespace_packages = true
+
+[tool.pytest.ini_options]
+# Tests import from here: main.py lives in src/ and is not an installed package.
+pythonpath = ["src"]
