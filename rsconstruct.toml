@@ -74,7 +74,7 @@ src_dirs = ["db", "src/data"]
 
 # ─── xml / svg ───────────────────────────────────────────────────────────────
 
-[processor.checker.xmllint]
+[processor.checker.ixmllint]
 src_dirs = ["src/images"]
 
 # ─── css ─────────────────────────────────────────────────────────────────────
