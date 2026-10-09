@@ -54,7 +54,7 @@ src_files = [".rumdl.toml", "pyproject.toml", "rsconstruct.toml"]
 src_dirs = ["src"]
 
 # lint the GitHub Actions workflow files with actionlint
-[processor.checker.actionlint]
+[processor.checker.iactionlint]
 src_dirs = [".github/workflows"]
 
 # ─── markdown ────────────────────────────────────────────────────────────────
