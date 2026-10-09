@@ -64,7 +64,7 @@ src_files = ["README.md"]
 
 # ─── docker ──────────────────────────────────────────────────────────────────
 
-[processor.checker.hadolint]
+[processor.checker.idockerfile]
 src_files = ["Dockerfile"]
 
 # ─── json ────────────────────────────────────────────────────────────────────
