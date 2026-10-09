@@ -13,7 +13,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy",
+    "pyrefly",
     "pytest",
     "ruff",
     "types-WebTest",
@@ -23,10 +23,15 @@ dev = [
 # Demo/teaching repo: not an installable package.
 package = false
 
-[tool.mypy]
-mypy_path = "src:python:scripts"
-explicit_package_bases = true
-namespace_packages = true
+[tool.pyrefly]
+# Type checking (rsconstruct's pyrefly processor). preset = "legacy" is
+# pyrefly's mypy-compatible behavior; "." on the search path is mypy's
+# implicit current directory.
+preset = "legacy"
+search-path = [
+    "src",
+    ".",
+]
 
 [tool.pytest.ini_options]
 # Tests import from here: main.py lives in src/ and is not an installed package.
