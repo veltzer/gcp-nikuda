@@ -50,7 +50,7 @@ src_dirs = ["config"]
 [processor.checker.taplo]
 src_files = [".rumdl.toml", "pyproject.toml", "rsconstruct.toml"]
 
-[processor.checker.tidy]
+[processor.checker.itidy]
 src_dirs = ["src"]
 
 # lint the GitHub Actions workflow files with actionlint
