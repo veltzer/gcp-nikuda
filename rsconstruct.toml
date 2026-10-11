@@ -36,9 +36,10 @@ src_dirs = ["tests"]
 
 # ─── shell ───────────────────────────────────────────────────────────────────
 
-[processor.checker.shellcheck]
+[processor.checker.ishellcheck]
 src_dirs = ["src", "misc", "config"]
-args = ["--severity=error", "--shell=bash"]
+severity = "error"
+shell = "bash"
 
 # ─── lua ─────────────────────────────────────────────────────────────────────
 
