@@ -22,6 +22,14 @@
 		<div class="access">
 			<textarea class="access_text" id="MainText" rows="10" cols="50" disabled="disabled" tabindex="1" placeholder="הכניסו פסקה לניקוד ולחצו על הכפתור שמתחת..."></textarea>
 			<input id="NikudizeButton" type="button" class="access_button" value="נקד פסקה שלמה" title="נקד את כלל המלל בתיבה שמעל" disabled="disabled" tabindex="2"/>
+			<label class="method-option" title="איך לנקד פסקה שלמה">
+				ניקוד פסקה בעזרת
+				<select id="ParagraphMethod">
+					<option value="nakdimon" selected="selected">נקדימון</option>
+					<option value="dictionary">מילון נקדה</option>
+					<option value="nakdan" id="NakdanMethod" disabled="disabled" hidden="hidden">הנקדן של דיקטה</option>
+				</select>
+			</label>
 			<input class="access_text" id="Quicky" type="text" disabled="disabled" tabindex="3" placeholder="הכניסו מילה בודדת ולחצו על הכפתור שמתחת..."/>
 			<input id="QuickyButton" type="button" class="access_button" value="נקד מילה בודדת, אוטומטית" title="נקד את המילה הבודדת בשורה שמעל" disabled="disabled" tabindex="4"/>
 			<div>
@@ -73,12 +81,15 @@
 		<div class="help" id="HelpBox">
 			<h1>דַּע נִקֻּדַהּ</h1>
 			<b><em>"נקד פסקה שלמה"</em></b> - הכניסו טקסט ולחצו לניקודו. אם מילה נוקדה לא נכון, הקליקו עליה עד לתצורה הנכונה.<br />
+			<b><em>"ניקוד פסקה בעזרת"</em></b> - נקדימון (ברירת המחדל) מנקד לפי ההקשר במשפט; מילון נקדה מנקד כל מילה לבדה.<br />
 			<b><em>"נקד מילה בודדת"</em></b> - כיתבו מילה ולחצו לקבלת אפשרויות ניקוד. ניתן לנקד מספר מילים מופרדות ברווחים.<br />
 			<b><em>"עדכן מילה לתוצאה"</em></b> - לחצו על מילה בטקסט המנוקד, נקדו אותה בטיוטא כרצונכם, ולחצו לעדכון.<br />
 			<b><em>ניקוד בטיוטא:</em></b>
 			<b>א.</b> ידנית בלחיצי הניקוד (קיצורי דרך: ctrl+shift + שורת המספרים, שׁ/שׂ ע"י ctrl+shift+ש')
 			<b>ב.</b> חצי-אוטומטית: כיתבו מילה דומה ב"נקד בודדת", בחרו תצורה מתאימה והיא תועתק לטיוטא.<br />
 			<b><em>איך נִקֻּדַהּ עובדת?</em></b> זוכרת ניקוד של כל המילים שראתה (תנ"ך, שירי רחל, ביאליק, לקסיקונים ועוד).<br />
+			<b><em>נקדימון:</em></b> מודל ניקוד פתוח, <a href="https://github.com/elazarg/nakdimon" target="_blank" rel="noopener">github.com/elazarg/nakdimon</a>. Elazar Gershuni, Yuval Pinter, <a href="https://aclanthology.org/2022.findings-naacl.75/" target="_blank" rel="noopener">"Restoring Hebrew Diacritics Without a Dictionary"</a>, Findings of NAACL 2022.<br />
+			<span id="NakdanCredit" style="display:none"><b><em>הנקדן של דיקטה:</em></b> ניקוד פסקאות בעזרת <a href="https://dicta.org.il" target="_blank" rel="noopener">dicta.org.il</a>. Avi Shmidman, Shaltiel Shmidman, Moshe Koppel, Yoav Goldberg, <a href="https://www.aclweb.org/anthology/2020.acl-demos.23/" target="_blank" rel="noopener">"Nakdan: Professional Hebrew Diacritizer"</a>, ACL 2020 System Demonstrations, 197-203.<br /></span>
 			לטענות מענות ובקשות לשיפור ניתן לפנות ל<a href="https://github.com/veltzer/gcp-nikuda/issues">הצעות לשיפור</a>
 		</div>
 		<div class="help" id="MemorialBox">

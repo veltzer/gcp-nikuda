@@ -42,6 +42,13 @@ var nikudRegExp =
 /* var firstLettersRegExp = /^[בכלמשהו]/g; */
 var ABRegExp = /[אבגדהוזחטיכךלמםנןסעפףצץקרשת]/g;
 
+// Paragraph methods served by the server (app/nakdimon, app/nakdan): the
+// name shown to the user and the longest text each accepts.
+var REMOTE_METHODS = {
+  nakdimon: {url: 'app/nakdimon', name: 'נקדימון', maxChars: 3000},
+  nakdan: {url: 'app/nakdan', name: 'הנקדן של דיקטה', maxChars: 30000}
+};
+
 $.ajaxSetup({
   contentType: 'application/json; charset=utf-8',
   dataType: 'json'
@@ -360,8 +367,66 @@ function nikudize(doneHandler) {
         });
       },
         function() {
-        doneHandler();
+        if (typeof(doneHandler) === 'function') {
+          doneHandler();
+        }
       });
+}
+
+// Same as nikudize, but the whole paragraph is punctuated in context by a
+// server side method (one of REMOTE_METHODS) instead of word by word.
+function nikudize_remote(method) {
+  SuggestionList.children('li').remove();
+  Quicky.val('');
+  Draft.text('');
+  MeNaked.addClass('me-naked-hidden');
+
+  var txt = MainText.val();
+  if (txt.length > method.maxChars) {
+    show_toast('הטקסט ארוך מדי ל' + method.name + ' (עד ' + method.maxChars + ' תווים)');
+    return;
+  }
+
+  show_toast('מנקד בעזרת ' + method.name + '...');
+  NikudizeButton.attr('disabled', 'disabled');
+  $.post({
+    url: method.url,
+    data: JSON.stringify({Text: txt}),
+    success: function(tokens) {
+      show_toast('');
+      Answer.children('span').remove();
+      Answer.text('');
+      for (var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        if (token.Sep || token.Nikudim.length === 0) {
+          // Separators (and anything not Hebrew) are copied as is
+          var lines = token.Str.split('\n');
+          for (var j = 0; j < lines.length; j++) {
+            if (j > 0) {
+              Answer.append('<br>');
+            }
+            Answer.append(document.createTextNode(lines[j]));
+          }
+        } else {
+          // Keep the naked word last, as naked() does
+          var nikudim = token.Nikudim.slice();
+          nikudim.push(token.Str);
+          Answer.append(print_nikudim(nikudim));
+        }
+      }
+    },
+    error: function(jqXHR) {
+      if (jqXHR.status === 429) {
+        var wait = Math.ceil(jqXHR.responseJSON.RetryAfter);
+        show_toast(method.name + ' עסוק, נסו שוב בעוד ' + wait + ' שניות');
+      } else {
+        show_toast(method.name + ' נכשל (' + jqXHR.status + ')');
+      }
+    },
+    complete: function() {
+      NikudizeButton.removeAttr('disabled');
+    }
+  });
 }
 
 function set_QuickyAns(nikudim, nikud, ID) {
@@ -885,7 +950,12 @@ $(document).ready(function() {
   // Setup the form buttons
   NikudizeButton.click(function(evt) {
     fake_use(evt);
-    nikudize();
+    var method = $('#ParagraphMethod').val();
+    if (method in REMOTE_METHODS) {
+      nikudize_remote(REMOTE_METHODS[method]);
+    } else {
+      nikudize();
+    }
   });
 
   function update_QuickyAns(minAllowed) {
@@ -1018,6 +1088,14 @@ $(document).ready(function() {
       }
     }
   }
+
+  // Offer Dicta's Nakdan only when the server is configured for it
+  $.getJSON('app/features', function(features) {
+    if (features.nakdan) {
+      $('#NakdanMethod').removeAttr('disabled').removeAttr('hidden');
+      $('#NakdanCredit').show();
+    }
+  });
 
   // Show which version is serving: git describe, deploy date and the Cloud
   // Run revision, stamped by scripts/deploy.sh and served by app/version.

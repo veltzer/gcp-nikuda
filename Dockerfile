@@ -19,5 +19,7 @@ COPY src/ src/
 # building without it fails on purpose so an unstamped image never ships.
 COPY build_info.json ./
 
-# Cloud Run sets PORT; default to 8080 for local `docker run`.
-CMD ["sh", "-c", "exec gunicorn -b :${PORT:-8080} -w 2 --threads 4 src.main:app"]
+# Cloud Run sets PORT; default to 8080 for local `docker run`. One process:
+# the service has a single CPU, and each process holds its own copy of the
+# Nakdimon model (~240MB with the dictionary) against a 512MiB limit.
+CMD ["sh", "-c", "exec gunicorn -b :${PORT:-8080} -w 1 --threads 8 src.main:app"]

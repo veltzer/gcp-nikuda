@@ -217,6 +217,26 @@ textarea.access_text {
 	transform: translateY(0);
 }
 
+/* Paragraph method chooser under the paragraph button */
+.method-option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-family: "Noto Sans Hebrew", Roboto, Arial, sans-serif;
+	font-size: 0.9375rem;
+	color: var(--md-on-surface-secondary);
+	cursor: pointer;
+}
+
+.method-option select {
+	font: inherit;
+	padding: 4px 8px;
+	color: var(--md-on-surface);
+	background: var(--md-surface);
+	border: 1px solid var(--md-divider);
+	border-radius: var(--md-radius);
+}
+
 /* Nikud palette container */
 .nikud_palette {
 	width: 100%;
