@@ -42,6 +42,8 @@ import nakdimon.predict
 HERE = os.path.dirname(os.path.abspath(__file__))
 DICTIONARY = os.path.join(os.path.dirname(HERE), "src", "data", "all.json")
 DEFAULT_SAVED = ["Dicta", "Morfix", "Snopi"]
+# The chunk length the site uses (NAKDIMON_MAXLEN in src/main.py).
+NAKDIMON_MAXLEN = 80
 
 LETTER = re.compile("[א-ת]")
 # Marks that are scored: the vowels, dagesh/shuruk and the shin/sin dots.
@@ -164,7 +166,7 @@ def compare(path, dictionary, saved, use_nakdimon):
             "dict-oracle": dictionary_vocalize(naked, dictionary, expected),
         }
         if use_nakdimon:
-            outputs["nakdimon"] = nakdimon.predict.predict(naked)
+            outputs["nakdimon"] = nakdimon.predict.predict(naked, maxlen=NAKDIMON_MAXLEN)
         if root:
             rel = os.path.relpath(doc, os.path.join(root, "expected"))
             for system in saved:

@@ -14,6 +14,7 @@ import unicodedata
 import urllib.error
 import urllib.request
 
+import onnxruntime
 from flask import Flask, abort, jsonify, request, send_from_directory
 from nakdimon import predict as nakdimon_predict
 from nakdimon.config import MAIN_MODEL as NAKDIMON_MODEL
@@ -34,10 +35,16 @@ NAKDAN_TIMEOUT = 60
 # Dicta asks for 10-20 seconds between requests and none in parallel.
 NAKDAN_LOCK = threading.Lock()
 
-# Nakdimon (https://github.com/elazarg/nakdimon) runs in process at about 35
-# words a second on Cloud Run's one CPU; this bounds a request to some 15
-# seconds.
-NAKDIMON_MAX_CHARS = 3000
+# Nakdimon (https://github.com/elazarg/nakdimon) runs in process. It pads
+# every chunk of text to maxlen, and predict()'s default of 10000 made even
+# one word cost seconds; 80 is the chunk length it was trained on, at the
+# same accuracy (scripts/nikud_compare.py). That runs about 2s per 10000
+# characters on one CPU.
+NAKDIMON_MAXLEN = 80
+# onnxruntime starts a thread per host core, but Cloud Run grants one CPU;
+# the surplus threads fight over it and made a long text 8x slower.
+NAKDIMON_THREADS = 1
+NAKDIMON_MAX_CHARS = 10000
 
 # Vowels, dagesh, shin dots and cantillation, but not the Hebrew punctuation
 # (maqaf, paseq, sof pasuq, nun hafukha) that shares the block.
@@ -93,11 +100,19 @@ def with_dictionary(word, nikudim):
     return result
 
 
+def load_nakdimon():
+    """ Load the model now rather than on the first request. """
+    options = onnxruntime.SessionOptions()
+    options.intra_op_num_threads = NAKDIMON_THREADS
+    options.inter_op_num_threads = NAKDIMON_THREADS
+    app.config["nakdimon"] = onnxruntime.InferenceSession(
+        str(NAKDIMON_MODEL), options, providers=["CPUExecutionProvider"])
+
+
 load_data()
 load_build_info()
 load_nakdan_config()
-# Load the model now rather than on the first request.
-nakdimon_predict.load_cached_model(NAKDIMON_MODEL)
+load_nakdimon()
 
 @app.route("/static/<directory>/<path:filename>", methods=["GET"])
 def static_asset(directory, filename):
@@ -219,7 +234,8 @@ def nakdimon_tokens(text):
     vocalization first, then the dictionary's. """
     words = HEBREW_WORD.findall(text)
     naked = [strip_nikud(w) for w in words]
-    vocalized = HEBREW_WORD.findall(nakdimon_predict.predict(strip_nikud(text)))
+    vocalized = HEBREW_WORD.findall(nakdimon_predict.predict(
+        strip_nikud(text), model=app.config["nakdimon"], maxlen=NAKDIMON_MAXLEN))
     # Pair output words with input words by their letters, so a word the
     # model changed or dropped falls back to the dictionary alone.
     choice = {}

@@ -45,7 +45,7 @@ var ABRegExp = /[אבגדהוזחטיכךלמםנןסעפףצץקרשת]/g;
 // Paragraph methods served by the server (app/nakdimon, app/nakdan): the
 // name shown to the user and the longest text each accepts.
 var REMOTE_METHODS = {
-  nakdimon: {url: 'app/nakdimon', name: 'נקדימון', maxChars: 3000},
+  nakdimon: {url: 'app/nakdimon', name: 'נקדימון', maxChars: 10000},
   nakdan: {url: 'app/nakdan', name: 'הנקדן של דיקטה', maxChars: 30000}
 };
 
