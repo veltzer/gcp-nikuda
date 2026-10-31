@@ -1,3 +1,5 @@
+- do a linki/social preview card for the nikuda.co.il site.
+
 - If you look at nikuda.co.il on two different browsers:
 	say firefox and google-chrome
 	you wil see that hebrew is rendeded in different fonts in those browsers.
