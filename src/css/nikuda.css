@@ -124,7 +124,8 @@ body {
 
 /* Left Panel - Controls */
 .access {
-	flex: 0 0 380px;
+	/* grows with wide screens: 380px up to ~1190px wide, 32vw above, capped at 600px */
+	flex: 0 0 clamp(380px, 32vw, 600px);
 	height: calc(100vh - 48px);
 	background: var(--md-surface);
 	border-radius: var(--md-radius);
@@ -174,7 +175,8 @@ body {
 
 textarea.access_text {
 	resize: none;
-	height: 160px;
+	height: 320px;
+	overflow-y: auto;
 	flex-shrink: 0;
 }
 
