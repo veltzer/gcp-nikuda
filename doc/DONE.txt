@@ -15,3 +15,6 @@ Fri Sep  4 2026
 	checked with gcloud_will_upload.sh. The makefile is gone too; rsconstruct
 	is the build.
 	Mark Veltzer
+Sat Oct 31 19:41:20 IST 2026
+	add a link/social preview card (Open Graph and Twitter meta tags, src/images/social_card.png).
+	Mark Veltzer

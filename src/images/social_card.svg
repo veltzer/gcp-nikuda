@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Source of social_card.png, the link preview image (og:image / twitter:image)
+that index.html points at. Social sites do not render SVG, so after editing
+this file regenerate the PNG (1200x630, the size Facebook, X, WhatsApp and
+LinkedIn all expect):
+
+	rsvg-convert -o src/images/social_card.png src/images/social_card.svg
+
+The text needs the Noto Serif Hebrew and Noto Sans Hebrew fonts installed.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+	<defs>
+		<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#3949ab"/>
+			<stop offset="1" stop-color="#1a237e"/>
+		</linearGradient>
+	</defs>
+	<rect width="1200" height="630" fill="url(#bg)"/>
+	<rect x="0" y="606" width="1200" height="24" fill="#ff7043"/>
+	<image x="353" y="40" width="494" height="260" xlink:href="nikuda.gif"/>
+	<text x="600" y="400" direction="rtl" text-anchor="middle" font-family="Noto Serif Hebrew" font-weight="bold" font-size="64" fill="#ffffff">נִקּוּד אוֹטוֹמָטִי לְטֶקְסְט עִבְרִי</text>
+	<text x="600" y="475" direction="rtl" text-anchor="middle" font-family="Noto Sans Hebrew" font-size="34" fill="#c5cae9">מילים בודדות ופסקאות שלמות · חינם וללא פרסומות</text>
+	<text x="600" y="560" text-anchor="middle" font-family="Noto Sans" font-weight="bold" font-size="38" fill="#ffffff" letter-spacing="2">nikuda.co.il</text>
+</svg>

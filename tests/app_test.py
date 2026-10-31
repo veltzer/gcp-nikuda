@@ -23,6 +23,21 @@ def test_favicon():
     assert response.body[:4] == b"\x00\x00\x01\x00"
 
 
+def test_social_card():
+    """ GET / links a 1200x630 PNG preview card that is actually served. """
+    application = webtest.TestApp(main.app)
+
+    page = application.get('/').text
+    url = "https://nikuda.co.il/static/images/social_card.png"
+    assert f'<meta property="og:image" content="{url}" />' in page
+    assert f'<meta name="twitter:image" content="{url}" />' in page
+    response = application.get('/static/images/social_card.png')
+    assert response.content_type == "image/png"
+    assert response.body[:8] == b"\x89PNG\r\n\x1a\n"
+    assert int.from_bytes(response.body[16:20], "big") == 1200
+    assert int.from_bytes(response.body[20:24], "big") == 630
+
+
 def test_version():
     """ GET /app/version reports the deploy stamp and the serving revision. """
     application = webtest.TestApp(main.app)
