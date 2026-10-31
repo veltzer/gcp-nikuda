@@ -14,6 +14,15 @@ def test_get():
     assert b"html" in response.body.lower()
 
 
+def test_favicon():
+    """ GET /favicon.ico serves the icon browsers ask for on their own. """
+    application = webtest.TestApp(main.app)
+
+    response = application.get('/favicon.ico')
+    assert response.status_int == 200
+    assert response.body[:4] == b"\x00\x00\x01\x00"
+
+
 def test_version():
     """ GET /app/version reports the deploy stamp and the serving revision. """
     application = webtest.TestApp(main.app)

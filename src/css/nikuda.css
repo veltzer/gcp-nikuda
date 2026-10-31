@@ -545,3 +545,110 @@ textarea.access_text {
 		font-size: 0.875rem;
 	}
 }
+
+/* Guided demo (src/js/demo.js): a balloon pointing at one control at a time */
+.demo-balloon {
+	position: fixed;
+	z-index: 300;
+	width: min(340px, calc(100vw - 16px));
+	padding: 16px 18px 14px;
+	background: var(--md-surface);
+	color: var(--md-on-surface);
+	border: 2px solid var(--md-accent);
+	border-radius: 12px;
+	box-shadow: var(--md-shadow-3);
+	font-size: 1rem;
+	line-height: 1.6;
+	text-align: right;
+}
+
+.demo-count {
+	font-size: 0.75rem;
+	color: var(--md-on-surface-secondary);
+	margin-bottom: 4px;
+}
+
+.demo-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.demo-actions button {
+	padding: 6px 18px;
+	border: none;
+	border-radius: var(--md-radius);
+	font: inherit;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.demo-next {
+	background: var(--md-accent);
+	color: #fff;
+}
+
+.demo-next:hover:not(:disabled) {
+	background: var(--md-accent-dark);
+}
+
+.demo-next:disabled {
+	background: var(--md-disabled-btn-bg);
+	cursor: wait;
+}
+
+.demo-stop {
+	background: transparent;
+	color: var(--md-on-surface-secondary);
+}
+
+.demo-stop:hover {
+	color: var(--md-on-surface);
+}
+
+/* The arrow is a rotated square on the balloon's edge, toward the target */
+.demo-arrow {
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	margin-left: -7px;
+	background: var(--md-surface);
+	border: 2px solid var(--md-accent);
+	transform: rotate(45deg);
+}
+
+.demo-below .demo-arrow {
+	top: -9px;
+	border-right: none;
+	border-bottom: none;
+}
+
+.demo-above .demo-arrow {
+	bottom: -9px;
+	border-left: none;
+	border-top: none;
+}
+
+.demo-center .demo-arrow {
+	display: none;
+}
+
+/* The control the balloon points at */
+.demo-target {
+	outline: 3px solid var(--md-accent);
+	outline-offset: 3px;
+	border-radius: var(--md-radius);
+	animation: demo-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes demo-pulse {
+	50% {
+		outline-color: transparent;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.demo-target {
+		animation: none;
+	}
+}

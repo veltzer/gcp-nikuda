@@ -1,5 +1,5 @@
 """
-Main code of the nikua website
+Main code of the nikuda website
 """
 
 
@@ -121,10 +121,15 @@ def static_asset(directory, filename):
     return send_from_directory(directory, filename)
 
 
-# this route is not needed in production
 @app.route("/", methods=["GET"])
 def index():
     return send_from_directory("html", "index.html")
+
+
+# Browsers ask for /favicon.ico on their own, whatever the page links.
+@app.route("/favicon.ico", methods=["GET"])
+def favicon():
+    return send_from_directory("images", "favicon.ico")
 
 @app.route("/app/version", methods=["GET"])
 def version():
