@@ -27,20 +27,14 @@ apply_theme(get_theme());
 
 // references
 var origElemRef = false;
-var draftElemRef = false;
-var letterElemRef = false;
 
 // useful regular expressions
 var nikudABRegExp = /(?:[אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])/g;
 var notNikudABRegExp = /(?![אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])[\s\S]/g;
-var sinNikudRegExp = /[ׁׂ]/g;
-var dageshRegExp = /ּ/g;
-var notSinNikudRegExp = /[ְֱֲֳִֵֶַָֹֻ]/g;
 var nikudRegExp =
     /[\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05c2\u05c1\u05b9\u05bc\u05bb]/g;
 /* var lastLettersRegExp = /[כמנפצ]$/g; */
 /* var firstLettersRegExp = /^[בכלמשהו]/g; */
-var ABRegExp = /[אבגדהוזחטיכךלמםנןסעפףצץקרשת]/g;
 
 // Paragraph methods served by the server (app/nakdimon, app/nakdan): the
 // name shown to the user and the longest text each accepts.
@@ -80,26 +74,6 @@ function fake_use(x) {
   if (x) {
     window.junkvar = 'junkval';
   }
-}
-
-function log(text) {
-  if (window.console) {
-    window.console.log(text);
-  }
-}
-
-function log_error(text) {
-  log(text);
-}
-
-function get_Key_Code(evt) {
-  if (window.event) { // IE
-    return evt.keyCode;
-  } else if (evt.which) { // Netscape/Firefox/Opera
-    return evt.which;
-  }
-  log_error('coundnt get keycode');
-  return undefined;
 }
 
 function validate_Hebrew(evt) {
@@ -236,6 +210,8 @@ function remove_duplicates(words) {
 }
 
 var runningID = 0;
+// True while a paragraph is being punctuated by a server side method
+var paragraphBusy = false;
 function print_nikudim(nikudim) {
   // Create span dom element with the first punctuation
   var spElem = print_nikud(nikudim[0]);
@@ -285,7 +261,7 @@ function cycle_nikud() {
 
   $(origElemRef).text(newNikud);
 
-  set_Draft(newNikud);
+  select_option(newNikud);
 }
 
 function change_nikud(elem) {
@@ -299,14 +275,14 @@ function change_nikud(elem) {
     }
   }
 
-  set_Draft(newNikud);
+  select_option(newNikud);
 }
 
 function nikudize(doneHandler) {
   // Reset input boxes
   SuggestionList.children('li').remove();
   Quicky.val('');
-  Draft.text('');
+  update_buttons();
 
   // Hide all other punctuation ways punctuate automatic and focus on text
   MeNaked.addClass('me-naked-hidden');
@@ -378,7 +354,7 @@ function nikudize(doneHandler) {
 function nikudize_remote(method) {
   SuggestionList.children('li').remove();
   Quicky.val('');
-  Draft.text('');
+  update_buttons();
   MeNaked.addClass('me-naked-hidden');
 
   var txt = MainText.val();
@@ -388,7 +364,8 @@ function nikudize_remote(method) {
   }
 
   show_toast('מנקד בעזרת ' + method.name + '...');
-  NikudizeButton.attr('disabled', 'disabled');
+  paragraphBusy = true;
+  update_buttons();
   $.post({
     url: method.url,
     data: JSON.stringify({Text: txt}),
@@ -424,7 +401,8 @@ function nikudize_remote(method) {
       }
     },
     complete: function() {
-      NikudizeButton.removeAttr('disabled');
+      paragraphBusy = false;
+      update_buttons();
     }
   });
 }
@@ -441,62 +419,16 @@ function set_QuickyAns(nikudim, nikud, ID) {
     QuickyAns.append(' ');
   }
 
-  // Select quicky ans element
-  QuickyAns.children('span').css('font-weight', 'normal');
-  $.each(QuickyAns.children('span'), function(index, element) {
-    fake_use(index);
-    if ($(element).text() === nikud) {
-      draftElemRef = element;
-      return false;
-    }
-    return undefined;
-  });
-  $(draftElemRef).css('font-weight', 'bold');
-
-  var word = trim($(draftElemRef).text());
   // Update quicky with naked word
   SuggestionList.children('li').remove();
-  Quicky.val(word.replace(nikudRegExp, ''));
-  // Update draft with punc word
-  set_Draft(word);
+  Quicky.val(trim(nikud).replace(nikudRegExp, ''));
+  update_buttons();
+  select_option(nikud);
 }
 
-function set_Draft(nikud) {
-  //Reset the status div
+// Bold the chosen form among the options and show them
+function select_option(nikud) {
   show_to_user('');
-  // Add each letter as a span element to the draft div
-  // Remove current letters
-  Draft.children('span').remove();
-  Draft.text('');
-
-  // Traverse the word breaking it up into letters
-  // (and perhaps their punctuations)
-  var pos;
-  var brokenWord = nikud;
-  while (true) {
-    pos = brokenWord.search(ABRegExp);
-    if (pos === -1) {
-      break;
-    }
-    var posLast = brokenWord.substr(pos + 1).search(ABRegExp);
-    if (posLast === -1) {
-      posLast = brokenWord.length;
-    }
-    else {
-      posLast = posLast + pos + 1;
-    }
-
-    // Add the single letter as span element
-    Draft.append(print_nikud(brokenWord.substr(pos, posLast)));
-
-    // Move to next letter
-    brokenWord = brokenWord.substr(posLast);
-  }
-
-  letterElemRef = Draft.children(':first');
-  $(letterElemRef).css('font-weight', 'bold');
-
-  // Iterate over the quicky ans words and bold just the selected word
   QuickyAns.children('span').css('font-weight', 'normal');
   $.each(QuickyAns.children('span'), function(index, element) {
     fake_use(index);
@@ -506,197 +438,16 @@ function set_Draft(nikud) {
     }
     return undefined;
   });
-
-  // Show the punctuation div now that it is set up
   // (if already shown, does nothing)
   MeNaked.removeClass('me-naked-hidden');
 }
 
-function update_Draft() {
-  if (!draftElemRef) {
-    show_to_user('ראשית כל יש להקליק על מילה בטקסט המנוקד.\n' +
-        'אחכ אפשר לשנות אותה במשבצת.\n' +
-        'ורק אז לחץ עלי כדי לעדכנה חזרה לטקסט המנוקד.');
-    return false;
-  }
-
-  // Add letters up to a word
-  var current = '';
-  $.each(Draft.children('span'), function(index, element) {
-    fake_use(index);
-    current += $(element).text();
-  });
-  // Remove illegal end word punctuations
-  current = do_enders(current);
-
-  // Check if this punctuation exists
-  var exists = false;
-  $.each(QuickyAns.children('span'), function(index, element) {
-    fake_use(index);
-    if ($(element).text() === current) {
-      exists = element;
-      return false;
-    }
-    return undefined;
-  });
-
-  QuickyAns.children('span').css('font-weight', 'normal');
-
-  if (exists) {
-    // Word found so bold it and set the answer punctuation
-    $(exists).css('font-weight', 'bold');
-
-    // Change current nikud of orig element reference
-    if (origElemRef !== false) {
-      change_nikud($(exists));
-    }
-
-    return false;
-  }
-
-  // Update form
-  // Create span element containing the current punctuation
-  var currentSpan = print_nikud(current);
-
-  // Append the new punctuation span to the quickyAns punctuation option word
-  // span list and make it the chosen word
-  currentSpan.css('font-weight', 'bold');
-  QuickyAns.append(currentSpan);
-  QuickyAns.append(' ');
-
-  // If we are working on a word from the current text
-  if (origElemRef !== false) {
-    currentSpan.data('ID', $(origElemRef).data('ID'));
-    $(origElemRef).attr('title', $(origElemRef).attr('title') + ',' + current);
-    change_nikud(currentSpan);
-  }
-  return undefined;
+// Each button is enabled only while the box above it has something in it
+// (and the paragraph button not while a paragraph is being punctuated)
+function update_buttons() {
+  NikudizeButton.prop('disabled', paragraphBusy || trim(MainText.val()) === '');
+  QuickyButton.prop('disabled', trim(Quicky.val()) === '');
 }
-
-function insert_Draft(value, letter) {
-  if (!letter) {
-    if (letterElemRef !== false) {
-      letter = letterElemRef;
-    }
-    else {
-      // Report error?
-      return false;
-    }
-  }
-
-  if (!value) {
-    // Report error?
-    return false;
-  }
-
-  var current = $(letter).text();
-
-  // The idea is that there could be a shin sin sound, a movement and a
-  // hiphen at most on any single letter
-  if (value === ' ') {
-    current = current.replace(nikudRegExp, '');
-  }
-  else if ((value === 'ׂ') || (value === 'ׁ') ||
-      (value === 'ׁׂ') || (value === 'ׁׂ')) {
-    if (current.search('ש') !== -1) {
-      if (value.length === 1) {
-        current = current.replace(sinNikudRegExp, '');
-        current += value;
-      }
-      // We have an option of alternating shin sin sounds in memory of sagi
-      // shagi saval shoval
-      else {
-        if (current.search('') !== -1) {
-          current = current.replace(sinNikudRegExp, '');
-          current += 'ׁ';
-        }
-        else {
-          current = current.replace(sinNikudRegExp, '');
-          current += 'ׂ';
-        }
-      }
-    } else {
-      show_to_user('error?!?');
-    }
-  }
-  else if (value === 'ּ') {
-    // h' is not here because it can have a mapik
-    // the rest of the letters can't accept doubling
-    // (except r in very esoteric cases)
-    if (current.search('[אעחר]') === -1) {
-      if (current.search(dageshRegExp) === -1) {
-        if (current.search('ו') !== -1) {
-          current = current.replace(nikudRegExp, '');
-        }
-        current += value;
-      }
-    }
-  }
-  else {
-    if (current.search(nikudRegExp) !== -1) {
-      if (current.search('ו') !== -1) {
-        current = current.replace(dageshRegExp, '');
-      }
-      current = current.replace(notSinNikudRegExp, '');
-    }
-    current += value;
-  }
-
-  $(letter).text(current);
-  return undefined;
-}
-
-/*
-function imitate_nikud(from, to) {
-  if (!to) {
-    to = Draft.text();
-  }
-  from = trim(from);
-  to = trim(to);
-  var fromNN = from.replace(nikudRegExp, '');
-  var toNN = to.replace(nikudRegExp, '');
-
-  // Copy nikud from->to regardles of the letters
-  if (fromNN.length == toNN.length) {
-    to = '';
-    var iNN = 0;
-    for (var i = 0; i < from.length; i++) {
-      if (from.charAt(i).match(/[א-ת]/)) {
-        to += toNN.charAt(iNN);
-        iNN++;
-      }
-      else to += from.charAt(i);
-    }
-  }
-
-
-// Copy from-> part of to
-  else if (undo_enders(toNN).search(undo_enders(fromNN)) != -1) {
-    var exp = '';
-    for (var i = 0; i < fromNN.length; i++) {
-      exp += char_exp(fromNN.charAt(i));
-      exp += nikudRegExp;
-    }
-    exp += '';
-    var pos = to.search(exp);
-    var lastPart = to.substring(RegExp.lastIndex);
-
-    var target = to.substring(pos, RegExp.lastIndex);
-    target = target.replace(nikudRegExp, '');
-    if (target == fromNN) {
-      to = to.substring(0, pos) + from + lastPart;
-    } else {
-      if (target == undo_enders(fromNN)) {
-        to = to.substring(0, pos) + undo_enders(from) + lastPart;
-      } else {
-        to = to.substring(0, pos) + do_enders(from) + lastPart;
-      }
-    }
-  }
-  return to;
-}
-
-*/
 
 function trim(str) {
   str = str.replace(/^\s+/, '');
@@ -773,31 +524,33 @@ $(document).ready(function() {
   SuggestionBox = $('#SuggestionBox');
   SuggestionList = $('#SuggestionList');
   QuickyAns = $('#QuickyAns');
-  Draft = $('#Draft');
   Answer = $('#Answer');
   HelpBox = $('#HelpBox');
   NikudizeButton = $('#NikudizeButton');
   QuickyButton = $('#QuickyButton');
-  DraftUpdateButton = $('#DraftUpdateButton');
   //SelectAll = $('#SelectAll');
   // Sometimes the browsers decide to save the latest state of the inputs
   // so override them
   MainText.removeAttr('disabled');
-  NikudizeButton.removeAttr('disabled');
   Quicky.removeAttr('disabled');
-  QuickyButton.removeAttr('disabled');
+  update_buttons();
+  MainText.on('input', update_buttons);
+  Quicky.on('input', update_buttons);
 
   // Input fields start empty; placeholders provide guidance
 
   // Clear placeholder and value on first user focus
-  MainText.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); });
-  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); });
+  MainText.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); update_buttons(); });
+  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); update_buttons(); });
 
   // Enter in MainText triggers NikudizeButton
   MainText.keydown(function(evt) {
     if (evt.key === 'Enter') {
       evt.preventDefault();
-      NikudizeButton.click();
+      // .click() runs the handler even on a disabled button
+      if (!NikudizeButton.prop('disabled')) {
+        NikudizeButton.click();
+      }
     }
   });
 
@@ -805,80 +558,11 @@ $(document).ready(function() {
   Quicky.keydown(function(evt) {
     if (evt.key === 'Enter') {
       evt.preventDefault();
-      QuickyButton.click();
+      if (!QuickyButton.prop('disabled')) {
+        QuickyButton.click();
+      }
     }
   });
-
-  // Bind letter and help hotkeys
-  function keyEventHandler(evt) {
-    if ((evt.shiftKey) && (evt.ctrlKey)) {
-
-      var keyNum = get_Key_Code(evt);
-
-      switch (keyNum)
-      {
-        case 72:
-          break;
-        case 8:
-          insert_Draft(' ');
-          break;
-        case 65:
-          // Toggle shin & sin sounds
-          insert_Draft('ׁׂ');
-          break;
-        case 220:
-          insert_Draft('ֻ');
-          break;
-        case 48:
-          insert_Draft('ּ');
-          break;
-        case 57:
-          insert_Draft('ֹ');
-          break;
-        case 56:
-          insert_Draft('ָ');
-          break;
-        case 55:
-          insert_Draft('ַ');
-          break;
-        case 54:
-          insert_Draft('ֶ');
-          break;
-        case 53:
-          insert_Draft('ֵ');
-          break;
-        case 52:
-          insert_Draft('ִ');
-          break;
-        case 51:
-          insert_Draft('ֳ');
-          break;
-        case 50:
-          insert_Draft('ֲ');
-          break;
-        case 49:
-          insert_Draft('ֱ');
-          break;
-        case 192:
-          insert_Draft('ְ');
-          break;
-        default:
-          break;
-      }
-
-      // Cancel furthur handling
-      return false;
-    }
-    return undefined;
-  }
-
-  // Opera wants keyup for some reason
-  if ('opera' in window) {
-    $(document).keyup(keyEventHandler);
-  }
-  else {
-    $(document).keydown(keyEventHandler);
-  }
 
   // Escape key closes floating windows
   $(document).keydown(function(evt) {
@@ -930,20 +614,6 @@ $(document).ready(function() {
     if ($(evt.target).is('span')) {
       // Set the answer punctuation and set the draft area appropriately
       change_nikud(evt.target);
-    }
-  });
-
-  // Setup the Draft click event to handle all letter clicks
-  Draft.click(function(evt) {
-    if ($(evt.target).is('span')) {
-      if (letterElemRef !== evt.target) {
-        if (letterElemRef !== false) {
-          $(letterElemRef).css('font-weight', 'normal');
-        }
-
-        letterElemRef = evt.target;
-        $(letterElemRef).css('font-weight', 'bold');
-      }
     }
   });
 
@@ -1016,13 +686,9 @@ $(document).ready(function() {
       SuggestionBox.hide('slow');
       // Insert suggestions to quicky box and update
       Quicky.val($(evt.target).text());
+      update_buttons();
       Quicky.submit();
     }
-  });
-
-  DraftUpdateButton.click(function(evt) {
-    fake_use(evt);
-    update_Draft();
   });
 
   // Theme toggle: cycle os -> light -> dark -> os, persist, and update button

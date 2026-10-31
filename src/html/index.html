@@ -32,7 +32,7 @@
 				</select>
 			</label>
 			<input class="access_text" id="Quicky" type="text" disabled="disabled" tabindex="3" placeholder="הכניסו מילה בודדת ולחצו על הכפתור שמתחת..."/>
-			<input id="QuickyButton" type="button" class="access_button" value="נקד מילה בודדת, אוטומטית" title="נקד את המילה הבודדת בשורה שמעל" disabled="disabled" tabindex="4"/>
+			<input id="QuickyButton" type="button" class="access_button" value="נקד מילה בודדת" title="נקד את המילה הבודדת בשורה שמעל" disabled="disabled" tabindex="4"/>
 			<div>
 				<div id="SuggestionBox" style="display:none">
 					<ul id="SuggestionList">
@@ -44,27 +44,6 @@
 				<div class="access_text" id="QuickyAns">
 					<!-- quicky answer -->
 				</div>
-				<div class="nikud_palette">
-					<img class="nikud_button" src="/static/images/nikud_0.svg" alt="&#187;" onclick="insert_Draft(' ');" title="נקה ניקוד"/>
-					<img class="nikud_button" src="/static/images/nikud_1.svg" alt="שׂ" onclick="insert_Draft('ׂ');" title="שׂין"/>
-					<img class="nikud_button" src="/static/images/nikud_2.svg" alt="שׁ" onclick="insert_Draft('ׁ');" title="שׁין"/>
-					<img class="nikud_button" src="/static/images/nikud_3.svg" alt="ֻ" onclick="insert_Draft('ֻ');" title="קובוץ"/>
-					<img class="nikud_button" src="/static/images/nikud_4.svg" alt="ּ" onclick="insert_Draft('ּ');" title="דּגש, שוּרוק, מפיק"/>
-					<img class="nikud_button" src="/static/images/nikud_5.svg" alt="ֹ" onclick="insert_Draft('ֹ');" title="חולם מלא"/>
-					<img class="nikud_button" src="/static/images/nikud_6.svg" alt="ָ" onclick="insert_Draft('ָ');" title="קָמץ"/>
-					<img class="nikud_button" src="/static/images/nikud_7.svg" alt="ַ" onclick="insert_Draft('ַ');" title="פַתח"/>
-					<img class="nikud_button" src="/static/images/nikud_8.svg" alt="ֶ" onclick="insert_Draft('ֶ');" title="סֶגול"/>
-					<img class="nikud_button" src="/static/images/nikud_9.svg" alt="ֵ" onclick="insert_Draft('ֵ');" title="צֵירי"/>
-					<img class="nikud_button" src="/static/images/nikud_B.svg" alt="ִ" onclick="insert_Draft('ִ');" title="חִיריק"/>
-					<img class="nikud_button" src="/static/images/nikud_C.svg" alt="ֳ" onclick="insert_Draft('ֳ');" title="חטף קֳמץ"/>
-					<img class="nikud_button" src="/static/images/nikud_D.svg" alt="ֲ" onclick="insert_Draft('ֲ');" title="חטף פֲתח"/>
-					<img class="nikud_button" src="/static/images/nikud_E.svg" alt="ֱ" onclick="insert_Draft('ֱ');" title="חטף סֱגול"/>
-					<img class="nikud_button" src="/static/images/nikud_F.svg" alt="ְ" onclick="insert_Draft('ְ');" title="שְווא"/>
-				</div>
-				<div class="access_text" id="Draft">
-					<!-- draft -->
-				</div>
-				<input id="DraftUpdateButton" type="button" class="access_button" value="עדכן מילה לתוצאה" title="עדכן מילה שנֻקדה לתוצאה" tabindex="5"/>
 				<!--<input id="SelectAll" type="button" class="access_button" value="העתק תוצאה" title="בחר בכל הטקסט שנֻקד" tabindex="6"/>-->
 			</div>
 		</div>
@@ -76,7 +55,7 @@
 				<button id="ThemeToggle" type="button" title="מצב תצוגה: בהיר / כהה / מערכת"><span id="ThemeLabel">מערכת</span></button>
 				<button id="HelpButton" type="button" onclick="$('#HelpBox').show('slow');">עזרה</button>
 				<button id="MemorialButton" type="button" onclick="$('#MemorialBox').show('slow');">לזכר</button>
-					<button id="DemoButton" type="button" title="הדגמה מודרכת של השימוש באתר">הדגמה</button>
+				<button id="DemoButton" type="button" title="הדגמה מודרכת של השימוש באתר">הדגמה</button>
 			</div>
 			<div id="VersionInfo"></div>
 		</div>
@@ -86,10 +65,6 @@
 			<b><em>"נקד פסקה שלמה"</em></b> - הכניסו טקסט ולחצו לניקודו. אם מילה נוקדה לא נכון, הקליקו עליה עד לתצורה הנכונה.<br />
 			<b><em>"ניקוד פסקה בעזרת"</em></b> - נקדימון (ברירת המחדל) מנקד לפי ההקשר במשפט; מילון נקדה מנקד כל מילה לבדה.<br />
 			<b><em>"נקד מילה בודדת"</em></b> - כיתבו מילה ולחצו לקבלת אפשרויות ניקוד. ניתן לנקד מספר מילים מופרדות ברווחים.<br />
-			<b><em>"עדכן מילה לתוצאה"</em></b> - לחצו על מילה בטקסט המנוקד, נקדו אותה בטיוטא כרצונכם, ולחצו לעדכון.<br />
-			<b><em>ניקוד בטיוטא:</em></b>
-			<b>א.</b> ידנית בלחיצי הניקוד (קיצורי דרך: ctrl+shift + שורת המספרים, שׁ/שׂ ע"י ctrl+shift+ש')
-			<b>ב.</b> חצי-אוטומטית: כיתבו מילה דומה ב"נקד בודדת", בחרו תצורה מתאימה והיא תועתק לטיוטא.<br />
 			<b><em>איך נִקֻּדַהּ עובדת?</em></b> זוכרת ניקוד של כל המילים שראתה (תנ"ך, שירי רחל, ביאליק, לקסיקונים ועוד).<br />
 			<b><em>נקדימון:</em></b> מודל ניקוד פתוח, <a href="https://github.com/elazarg/nakdimon" target="_blank" rel="noopener">github.com/elazarg/nakdimon</a>. Elazar Gershuni, Yuval Pinter, <a href="https://aclanthology.org/2022.findings-naacl.75/" target="_blank" rel="noopener">"Restoring Hebrew Diacritics Without a Dictionary"</a>, Findings of NAACL 2022.<br />
 			<span id="NakdanCredit" style="display:none"><b><em>הנקדן של דיקטה:</em></b> ניקוד פסקאות בעזרת <a href="https://dicta.org.il" target="_blank" rel="noopener">dicta.org.il</a>. Avi Shmidman, Shaltiel Shmidman, Moshe Koppel, Yoav Goldberg, <a href="https://www.aclweb.org/anthology/2020.acl-demos.23/" target="_blank" rel="noopener">"Nakdan: Professional Hebrew Diacritizer"</a>, ACL 2020 System Demonstrations, 197-203.<br /></span>

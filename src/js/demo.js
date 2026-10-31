@@ -47,6 +47,8 @@ function demo_fill(input, text) {
   input.triggerHandler('focus');
   input.removeAttr('placeholder');
   input.val(text);
+  // enables the button under the input, as typing would
+  input.trigger('input');
 }
 
 // Call done once check() holds; call fail on a failed request or timeout.
@@ -124,15 +126,6 @@ function demo_build_steps() {
           'הבאה.'
     },
     {
-      target: '.nikud_palette',
-      text: 'אין אפשרות מתאימה? מנקדים ידנית: לוחצים על אות בטיוטא ' +
-          'שמתחת, ואז על סימן הניקוד הרצוי.'
-    },
-    {
-      target: '#DraftUpdateButton',
-      text: 'בסיום לוחצים "עדכן מילה לתוצאה", והמילה מתעדכנת בטקסט המנוקד.'
-    },
-    {
       target: '#Quicky',
       enter: function() { demo_fill(Quicky, DEMO_WORD); },
       text: 'אפשר גם לנקד מילה בודדת: כותבים אותה כאן. הכנסנו את המילה "' +
@@ -152,8 +145,8 @@ function demo_build_steps() {
     },
     {
       target: '#QuickyAns',
-      text: 'אלה כל הדרכים לנקד "' + DEMO_WORD + '". בוחרים את המתאימה ' +
-          'והיא מועתקת לטיוטא.'
+      text: 'אלה כל הדרכים לנקד "' + DEMO_WORD + '". לחיצה על אפשרות ' +
+          'בוחרת אותה.'
     },
     {
       target: '#HelpButton',
