@@ -16,12 +16,16 @@ var DEMO_PARAGRAPH_WORD = 'ספרים';
 var DEMO_WORD = 'ספר';
 // Longest wait for the server before giving up on a step.
 var DEMO_TIMEOUT = 30000;
+// Clicks this soon after a step appears are ignored, so a double-click or a
+// click that lands as the balloon moves cannot skip the next step unread.
+var DEMO_CLICK_GUARD = 300;
 
 var demoSteps = [];
 var demoIndex = -1;
 var demoBalloon = null;
 var demoTarget = null;
 var demoTimer = null;
+var demoShownAt = 0;
 
 function demo_naked(text) {
   return text.replace(nikudRegExp, '');
@@ -217,7 +221,9 @@ function demo_show(index) {
     demoTarget.scrollIntoView({block: 'nearest', inline: 'nearest'});
   }
 
-  demoBalloon.find('.demo-count').text((index + 1) + ' / ' + demoSteps.length);
+  // In words: "1 / 11" in a right-to-left page is laid out as "11 / 1".
+  demoBalloon.find('.demo-count').text(
+      'שלב ' + (index + 1) + ' מתוך ' + demoSteps.length);
   demoBalloon.find('.demo-text').text(step.text);
   var last = index === demoSteps.length - 1;
   demoBalloon.find('.demo-next')
@@ -226,9 +232,13 @@ function demo_show(index) {
   demoBalloon.find('.demo-stop').toggle(!last);
   demo_place();
   demoBalloon.find('.demo-next').trigger('focus');
+  demoShownAt = Date.now();
 }
 
 function demo_next() {
+  if (Date.now() - demoShownAt < DEMO_CLICK_GUARD) {
+    return;
+  }
   var step = demoSteps[demoIndex];
   if (demoIndex === demoSteps.length - 1) {
     demo_end();
@@ -252,6 +262,9 @@ function demo_next() {
 function demo_keydown(evt) {
   if (evt.key === 'Escape') {
     demo_end();
+  } else if (evt.key === 'Enter' && evt.repeat) {
+    // A held Enter would press the focused button once per repeat.
+    evt.preventDefault();
   }
 }
 
