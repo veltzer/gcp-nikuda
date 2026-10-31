@@ -16,21 +16,14 @@ reject_dot_src_dirs = true
 src_dirs = ["tera.templates"]
 
 [processor.checker.ruff]
-src_dirs = ["src", "config", "tests", "scripts"]
+src_dirs = ["src", "tests", "scripts"]
 
 
 [processor.checker.pyrefly]
-src_dirs = ["src", "config", "tests", "scripts"]
+src_dirs = ["src", "tests", "scripts"]
 
 [processor.checker.pytest]
 src_dirs = ["tests"]
-
-# ─── shell ───────────────────────────────────────────────────────────────────
-
-[processor.checker.ishellcheck]
-src_dirs = ["src", "misc", "config"]
-severity = "error"
-shell = "bash"
 
 # ─── lua ─────────────────────────────────────────────────────────────────────
 

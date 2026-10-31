@@ -42,6 +42,37 @@ def test_suggest():
     assert "Nakeds" in response.json
 
 
+def test_suggest_bad_request():
+    """ POST /app/suggest rejects a body without a string prefix. """
+    application = webtest.TestApp(main.app)
+
+    application.post_json('/app/suggest', {"Text": "של"}, status=400)
+    application.post_json('/app/suggest', ["של"], status=400)
+    application.post_json('/app/suggest', {"Naked": 5}, status=400)
+
+
+def test_naked():
+    """ POST /app/naked returns the dictionary forms of each word. """
+    application = webtest.TestApp(main.app)
+
+    words = application.post_json('/app/naked', [{"Naked": "שלום", "ID": 1}]).json
+    assert words[0]["ID"] == 1
+    assert words[0]["Nikudim"]
+    for form in words[0]["Nikudim"]:
+        assert main.strip_nikud(form) == "שלום"
+
+
+def test_naked_bad_request():
+    """ POST /app/naked rejects anything but a list of words, and long lists. """
+    application = webtest.TestApp(main.app)
+
+    application.post_json('/app/naked', {"Naked": "שלום"}, status=400)
+    application.post_json('/app/naked', [{"Text": "שלום"}], status=400)
+    application.post_json('/app/naked', ["שלום"], status=400)
+    words = [{"Naked": "א"}] * (main.NAKED_MAX_WORDS + 1)
+    application.post_json('/app/naked', words, status=413)
+
+
 def test_features():
     """ GET /app/features reports Nakdan off when it is not configured. """
     application = webtest.TestApp(main.app)

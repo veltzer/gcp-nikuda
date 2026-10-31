@@ -178,7 +178,6 @@ dependencies = [
     { name = "flask" },
     { name = "gunicorn" },
     { name = "nakdimon" },
-    { name = "webtest" },
 ]
 
 [package.dev-dependencies]
@@ -187,6 +186,7 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-webtest" },
+    { name = "webtest" },
 ]
 
 [package.metadata]
@@ -194,7 +194,6 @@ requires-dist = [
     { name = "flask" },
     { name = "gunicorn" },
     { name = "nakdimon" },
-    { name = "webtest" },
 ]
 
 [package.metadata.requires-dev]
@@ -203,6 +202,7 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "types-webtest" },
+    { name = "webtest" },
 ]
 
 [[package]]

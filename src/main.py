@@ -45,6 +45,8 @@ NAKDIMON_MAXLEN = 80
 # the surplus threads fight over it and made a long text 8x slower.
 NAKDIMON_THREADS = 1
 NAKDIMON_MAX_CHARS = 10000
+# The dictionary method sends a paragraph one word per entry.
+NAKED_MAX_WORDS = 10000
 
 # Vowels, dagesh, shin dots and cantillation, but not the Hebrew punctuation
 # (maqaf, paseq, sof pasuq, nun hafukha) that shares the block.
@@ -280,7 +282,9 @@ def nakdimon():
 
 @app.route("/app/suggest", methods=["POST"])
 def suggest():
-    obj = request.get_json()
+    obj = request.get_json(silent=True)
+    if not isinstance(obj, dict) or not isinstance(obj.get("Naked"), str):
+        abort(400)
     p_naked = obj["Naked"]
     pos = bisect.bisect_left(app.config["sorted"], p_naked)
     raw_results = app.config["sorted"][pos:pos+10]
@@ -290,7 +294,13 @@ def suggest():
 
 @app.route("/app/naked", methods=["POST"])
 def naked():
-    jsonobject = request.get_json()
+    jsonobject = request.get_json(silent=True)
+    if not isinstance(jsonobject, list) or not all(
+            isinstance(obj, dict) and isinstance(obj.get("Naked"), str)
+            for obj in jsonobject):
+        abort(400)
+    if len(jsonobject) > NAKED_MAX_WORDS:
+        abort(413)
     for obj in jsonobject:
         p_naked = obj["Naked"]
         d = app.config["dict"]
