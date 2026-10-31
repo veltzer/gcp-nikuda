@@ -4,12 +4,14 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
-# Dependencies come from [project].dependencies in pyproject.toml; uv's
-# `pip install -r pyproject.toml` installs them without building the
-# (non-installable, package = false) project itself.
-COPY pyproject.toml ./
+# Install exactly what uv.lock pins (and CI tested), hash-checked, never a
+# fresh resolve. --locked fails the build if the lock is stale against
+# pyproject.toml; --no-emit-project skips the (package = false) project.
+COPY pyproject.toml uv.lock ./
 RUN pip install --no-cache-dir uv \
-    && uv pip install --system --no-cache -r pyproject.toml \
+    && uv export --locked --no-dev --no-emit-project -o /tmp/requirements.txt \
+    && uv pip install --system --no-cache --require-hashes -r /tmp/requirements.txt \
+    && rm /tmp/requirements.txt \
     && pip uninstall -y uv
 
 # The app resolves src/data and its static asset dirs relative to the

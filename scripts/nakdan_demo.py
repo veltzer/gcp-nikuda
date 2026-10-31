@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Standalone demo of Dicta's Nakdan API (see doc/nakdan_api.txt).
 

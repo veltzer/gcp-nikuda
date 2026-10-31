@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Compare nikud systems against hand-vocalized Hebrew text.
 
