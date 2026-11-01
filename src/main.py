@@ -16,6 +16,7 @@ import urllib.request
 
 import onnxruntime
 from flask import Flask, abort, jsonify, request, send_from_directory
+from flask_compress import Compress
 from nakdimon import predict as nakdimon_predict
 from nakdimon.config import MAIN_MODEL as NAKDIMON_MODEL
 
@@ -56,6 +57,13 @@ HEBREW_WORD = re.compile(f"[\u05d0-\u05ea][\u05d0-\u05ea{MARKS}]*")
 HEBREW_MARK = re.compile(f"[{MARKS}]")
 
 app = Flask(__name__, static_folder=None)
+# Compress text replies (HTML, CSS, JS, JSON over 500 bytes) with brotli or
+# gzip, whichever the browser accepts: Cloud Run sends replies as the app
+# gives them, and the page's text assets shrink to about a quarter. Files
+# from send_from_directory are streamed replies, for which flask-compress
+# leaves gzip out by default; it is the one every browser and proxy knows.
+app.config["COMPRESS_ALGORITHM_STREAMING"] = ["br", "gzip"]
+Compress(app)
 
 def load_data():
     """ Load the nikud dictionary once at startup rather than per request. """

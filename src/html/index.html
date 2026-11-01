@@ -33,6 +33,47 @@
 		<meta name="twitter:image" content="https://nikuda.co.il/static/images/social_card.png" />
 		<meta name="twitter:image:alt" content="נִקֻּדַהּ - ניקוד אוטומטי לטקסט עברי, nikuda.co.il" />
 		<link rel="Stylesheet" type="text/css" href="/static/css/nikuda.css" />
+		<!-- Every text the scripts show, so nikuda.js and demo.js stay ASCII;
+		they read it with S(key) -->
+		<script type="application/json" id="Strings">
+		{
+			"theme_os": "מערכת",
+			"theme_light": "בהיר",
+			"theme_dark": "כהה",
+			"method_nakdimon": "נקדימון",
+			"method_nakdan": "הנקדן של דיקטה",
+			"hebrew_keyboard": "אנא השתמש במקלדת עיברית...",
+			"too_long": "הטקסט ארוך מדי ל{method} (עד {max} תווים)",
+			"vocalizing_with": "מנקד בעזרת {method}...",
+			"method_busy": "{method} עסוק, נסו שוב בעוד {seconds} שניות",
+			"method_failed": "{method} נכשל ({status})",
+			"welcome": "בְּרוּכִים הַבָּאִים לנִקֻדַהּ!\nלָחֲצוּ עַל הַמִּלִּים כָּאן וּרְאוּ כֵּיצַד הֵן מַשְׁתַנּוֹת.\nשִׁמּוּשׁ מֻצְלָח!",
+			"demo_paragraph": "בשבוע שעבר נסענו לירושלים עם המשפחה. טיילנו בעיר העתיקה, אכלנו חומוס במסעדה קטנה וקנינו ספרים ישנים בשוק.\nבערב ישבנו על המרפסת וסיפרנו סיפורים עד שהילדים נרדמו.",
+			"demo_paragraph_word": "ספרים",
+			"demo_word": "ספר",
+			"demo_welcome": "ברוכים הבאים להדגמה של נִקֻּדַהּ! נעבור יחד על השימוש באתר, צעד אחר צעד. ההדגמה תכתוב טקסט לדוגמה בתיבות ותלחץ על הכפתורים בשבילכם, ולכן מה שכתבתם בתיבות יוחלף. להתחיל?",
+			"demo_start": "התחילו",
+			"demo_main_text": "כאן כותבים או מדביקים פסקה בלי ניקוד. הכנסנו פסקה לדוגמה.",
+			"demo_method": "כאן בוחרים איך לנקד את הפסקה: נקדימון מנקד לפי ההקשר במשפט, ומילון נקדה מנקד כל מילה לבדה.",
+			"demo_method_nakdan": " הנקדן של דיקטה מנקד גם הוא לפי ההקשר, בעזרת השירות של dicta.org.il.",
+			"demo_nikudize": "עכשיו לוחצים על \"נקד פסקה שלמה\". ללחוץ בשבילכם?",
+			"demo_vocalize": "נקד",
+			"demo_answer": "הנה הפסקה המנוקדת. מילה שלא נמצא לה ניקוד מסומנת באדום בקו גלי.",
+			"demo_click_word": "מילה נוקדה לא נכון? לוחצים עליה. ללחוץ בשבילכם על \"{word}\"?",
+			"demo_click": "לחצו",
+			"demo_options": "אלה אפשרויות הניקוד של המילה. לחיצה על אפשרות מחליפה את המילה בטקסט, וכל לחיצה נוספת על המילה בטקסט עוברת לאפשרות הבאה.",
+			"demo_quicky": "אפשר גם לנקד מילה בודדת: כותבים אותה כאן. הכנסנו את המילה \"{word}\".",
+			"demo_quicky_button": "לוחצים על \"נקד מילה בודדת\". ללחוץ בשבילכם?",
+			"demo_word_options": "אלה כל הדרכים לנקד \"{word}\". לחיצה על אפשרות בוחרת אותה.",
+			"demo_done": "זהו! פרטים נוספים וקיצורי מקלדת יש בכפתור \"עזרה\", ואפשר להריץ את ההדגמה שוב בכל עת.",
+			"demo_finish": "סיום",
+			"demo_step": "שלב {step} מתוך {steps}",
+			"demo_next": "הבא",
+			"demo_wait": "רגע...",
+			"demo_no_answer": "השרת לא ענה הפעם. אפשר לנסות שוב או לסיים את ההדגמה.",
+			"demo_retry": "נסו שוב"
+		}
+		</script>
 		<script src="/static/js/nikuda.js" type="text/javascript"></script>
 		<script src="/static/js/demo.js" type="text/javascript"></script>
 	</head>

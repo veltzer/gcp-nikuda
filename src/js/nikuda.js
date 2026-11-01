@@ -2,11 +2,6 @@
 // Applied as early as possible (script is in <head>) to avoid a flash of the
 // wrong theme before the document is ready.
 var THEME_MODES = ['os', 'light', 'dark'];
-var THEME_META = {
-  os: {label: 'מערכת'},
-  light: {label: 'בהיר'},
-  dark: {label: 'כהה'}
-};
 
 function get_theme() {
   var stored;
@@ -25,22 +20,38 @@ function apply_theme(mode) {
 // Apply the persisted theme immediately, before the body renders.
 apply_theme(get_theme());
 
+// The page's texts: the JSON in index.html's #Strings block, read once the
+// document is there. {name} in a text is replaced by params.name.
+var STRINGS = null;
+function S(key, params) {
+  if (STRINGS === null) {
+    STRINGS = JSON.parse(document.getElementById('Strings').textContent);
+  }
+  var text = STRINGS[key];
+  if (text === undefined) {
+    console.error('no string ' + key);
+    return key;
+  }
+  return text.replace(/\{(\w+)\}/g, function(match, name) {
+    return (params && name in params) ? String(params[name]) : match;
+  });
+}
+
 // references
 var origElemRef = false;
 
 // useful regular expressions
-var nikudABRegExp = /(?:[אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])/g;
-var notNikudABRegExp = /(?![אבגדהוזחטיכךלמםנןסעפףצץקרשת]|[ְֱֲֳִֵֶַָֹֻּׁׂ])[\s\S]/g;
+// Hebrew letters (alef to tav, finals included) and the vowel points.
+var nikudABRegExp = /(?:[\u05d0-\u05ea]|[\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05c2\u05c1\u05b9\u05bc\u05bb])/g;
+var notNikudABRegExp = /(?![\u05d0-\u05ea]|[\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05c2\u05c1\u05b9\u05bc\u05bb])[\s\S]/g;
 var nikudRegExp =
     /[\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05c2\u05c1\u05b9\u05bc\u05bb]/g;
-/* var lastLettersRegExp = /[כמנפצ]$/g; */
-/* var firstLettersRegExp = /^[בכלמשהו]/g; */
 
 // Paragraph methods served by the server (app/nakdimon, app/nakdan): the
-// name shown to the user and the longest text each accepts.
+// S() key of the name shown to the user and the longest text each accepts.
 var REMOTE_METHODS = {
-  nakdimon: {url: 'app/nakdimon', name: 'נקדימון', maxChars: 10000},
-  nakdan: {url: 'app/nakdan', name: 'הנקדן של דיקטה', maxChars: 30000}
+  nakdimon: {url: 'app/nakdimon', name: 'method_nakdimon', maxChars: 10000},
+  nakdan: {url: 'app/nakdan', name: 'method_nakdan', maxChars: 30000}
 };
 
 // Small DOM helpers (the site used jQuery for these until 2026-10).
@@ -167,7 +178,7 @@ function validate_Hebrew(evt) {
   // evt.key gives the actual character for printable keys
   if (evt.key && evt.key.length === 1 && /[a-zA-Z]/.test(evt.key)) {
     // Do not allow english letters
-    show_toast('אנא השתמש במקלדת עיברית...');
+    show_toast(S('hebrew_keyboard'));
     evt.preventDefault();
   }
 }
@@ -175,7 +186,7 @@ function validate_Hebrew(evt) {
 // JSON AJAX punctuation function with success and done handlers
 function naked(sentWords, successHandler, doneHandler) {
   // Update status
-  show_to_user('מנקד...');
+  show_to_user('vocalizing...');
   // Go to the server with words & their respective IDs
   call_json('app/naked', sentWords).then(function(replyWords) {
     // reset status
@@ -190,8 +201,7 @@ function naked(sentWords, successHandler, doneHandler) {
       }
       else {
         // Update status as failure
-        show_to_user('השרת לא מצא ניקוד למילה [' +
-                     original + ']');
+        show_to_user('no vocalization for [' + original + ']');
       }
 
       // Add naked word to the punctuations at the end
@@ -205,12 +215,12 @@ function naked(sentWords, successHandler, doneHandler) {
     }
   }, function(error) {
     // Update status as failure
-    show_to_user('השרת נכשל בניקוד ' + error.status);
+    show_to_user('vocalization failed: ' + error.status);
   });
 }
 
 var suggestID = 0;
-var currentInaked = 'משתנות';
+var currentInaked = '';
 function Suggest() {
   var inaked = Quicky.value;
 
@@ -223,7 +233,7 @@ function Suggest() {
     currentInaked = inaked;
   }
 
-  show_to_user('אוטומט: ' + inaked);
+  show_to_user('suggest: ' + inaked);
 
   // Increment suggestions counter so we can connect
   // request to appropriate reply
@@ -423,12 +433,13 @@ function nikudize_remote(method) {
   MeNaked.classList.add('me-naked-hidden');
 
   var txt = MainText.value;
+  var name = S(method.name);
   if (txt.length > method.maxChars) {
-    show_toast('הטקסט ארוך מדי ל' + method.name + ' (עד ' + method.maxChars + ' תווים)');
+    show_toast(S('too_long', {method: name, max: method.maxChars}));
     return;
   }
 
-  show_toast('מנקד בעזרת ' + method.name + '...');
+  show_toast(S('vocalizing_with', {method: name}));
   paragraphBusy = true;
   update_buttons();
   call_json(method.url, {Text: txt}).then(function(tokens) {
@@ -449,9 +460,9 @@ function nikudize_remote(method) {
   }, function(error) {
     if (error.status === 429 && error.body) {
       var wait = Math.ceil(error.body.RetryAfter);
-      show_toast(method.name + ' עסוק, נסו שוב בעוד ' + wait + ' שניות');
+      show_toast(S('method_busy', {method: name, seconds: wait}));
     } else {
-      show_toast(method.name + ' נכשל (' + error.status + ')');
+      show_toast(S('method_failed', {method: name, status: error.status}));
     }
   }).finally(function() {
     paragraphBusy = false;
@@ -505,28 +516,6 @@ function trim(str) {
   str = str.replace(/\s+$/, '');
   return str;
 }
-
-/*
-function char_exp(c) {
-  if ((c == 'ך') || (c == 'כ')) { return '[כך]'; }
-  if ((c == 'ם') || (c == 'מ')) { return '[מם]'; }
-  if ((c == 'ן') || (c == 'נ')) { return '[נן]'; }
-  if ((c == 'ף') || (c == 'פ')) { return '[פף]'; }
-  if ((c == 'ץ') || (c == 'צ')) { return '[צץ]'; }
-  return c;
-}
-*/
-
-/*
-function undo_enders(word) {
-  word = word.replace(/ך$/g, 'כ');
-  word = word.replace(/ם$/g, 'מ');
-  word = word.replace(/ן$/g, 'נ');
-  word = word.replace(/ף$/g, 'פ');
-  word = word.replace(/ץ$/g, 'צ');
-  return word;
-}
-*/
 
 function do_enders(word) {
   word = word.replace(
@@ -736,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var ThemeLabel = document.getElementById('ThemeLabel');
 
   function refresh_theme_button(mode) {
-    ThemeLabel.textContent = THEME_META[mode].label;
+    ThemeLabel.textContent = S('theme_' + mode);
   }
 
   // Reflect the theme that was applied early in the page load
@@ -756,31 +745,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Show pre-punctuated welcome text with clickable spans
   Answer.replaceChildren();
-  var welcomeWords = [
-    'בְּרוּכִים',
-    'הַבָּאִים',
-    'לנִקֻדַהּ!',
-    '\n',
-    'לָחֲצוּ',
-    'עַל',
-    'הַמִּלִּים',
-    'כָּאן',
-    'וּרְאוּ',
-    'כֵּיצַד',
-    'הֵן',
-    'מַשְׁתַנּוֹת.',
-    '\n',
-    'שִׁמּוּשׁ',
-    'מֻצְלָח!'
-  ];
-  for (var i = 0; i < welcomeWords.length; i++) {
-    if (welcomeWords[i] === '\n') {
+  var welcomeLines = S('welcome').split('\n');
+  for (var i = 0; i < welcomeLines.length; i++) {
+    if (i > 0) {
       Answer.appendChild(document.createElement('br'));
-    } else {
-      Answer.appendChild(print_nikudim([welcomeWords[i]]));
-      if (i + 1 < welcomeWords.length && welcomeWords[i + 1] !== '\n') {
+    }
+    var welcomeWords = welcomeLines[i].split(' ');
+    for (var j = 0; j < welcomeWords.length; j++) {
+      if (j > 0) {
         Answer.appendChild(document.createTextNode(' '));
       }
+      Answer.appendChild(print_nikudim([welcomeWords[j]]));
     }
   }
 
@@ -799,6 +774,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Run revision, stamped by gcloud_run_deploy.sh and served by app/version.
   call_json('app/version').then(function(info) {
     document.getElementById('VersionInfo').textContent =
-        info.git_describe + ' · ' + info.deploy_date + ' · ' + info.revision;
+        [info.git_describe, info.deploy_date, info.revision].join(' \u00b7 ');
   }, function() {});
 });

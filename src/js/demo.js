@@ -1,4 +1,4 @@
-// Guided demo ("הדגמה" button): a tour of balloons, each pointing at one
+// Guided demo (the #DemoButton button): a tour of balloons, each pointing at one
 // control. Before every step that types into a box or presses a button the
 // user confirms it, and the demo then does it for them with a ready-made
 // paragraph and word.
@@ -7,14 +7,10 @@
 // Answer, Quicky, QuickyAns, NikudizeButton, QuickyButton, nikudRegExp) and
 // the 'nikuda:ajaxerror' event its call_json() fires on a failed request.
 
-var DEMO_PARAGRAPH =
-    'בשבוע שעבר נסענו לירושלים עם המשפחה. טיילנו בעיר העתיקה, ' +
-    'אכלנו חומוס במסעדה קטנה וקנינו ספרים ישנים בשוק.\n' +
-    'בערב ישבנו על המרפסת וסיפרנו סיפורים עד שהילדים נרדמו.';
-// A word of the paragraph that has more than one vocalization.
-var DEMO_PARAGRAPH_WORD = 'ספרים';
-// A single word with many vocalizations (book, counted, told, barber...).
-var DEMO_WORD = 'ספר';
+// The texts (the demo paragraph, its words and every balloon) are S() keys,
+// in index.html's #Strings block. demo_paragraph_word is a word of the
+// paragraph with more than one vocalization, demo_word a single word with
+// many (book, counted, told, barber...).
 // Longest wait for the server before giving up on a step.
 var DEMO_TIMEOUT = 30000;
 // Clicks this soon after a step appears are ignored, so a double-click or a
@@ -88,87 +84,77 @@ function demo_stop_waiting() {
 // (the server is configured for it).
 function demo_nakdan_text() {
   return document.getElementById('NakdanMethod').hidden ? '' :
-      ' הנקדן של דיקטה מנקד גם הוא לפי ההקשר, בעזרת השירות של dicta.org.il.';
+      S('demo_method_nakdan');
 }
 
 function demo_build_steps() {
   return [
     {
-      text: 'ברוכים הבאים להדגמה של נִקֻּדַהּ! נעבור יחד על השימוש באתר, ' +
-          'צעד אחר צעד. ההדגמה תכתוב טקסט לדוגמה בתיבות ותלחץ על ' +
-          'הכפתורים בשבילכם, ולכן מה שכתבתם בתיבות יוחלף. להתחיל?',
-      next: 'התחילו'
+      text: S('demo_welcome'),
+      next: S('demo_start')
     },
     {
       target: '#MainText',
-      enter: function() { demo_fill(MainText, DEMO_PARAGRAPH); },
-      text: 'כאן כותבים או מדביקים פסקה בלי ניקוד. הכנסנו פסקה לדוגמה.'
+      enter: function() { demo_fill(MainText, S('demo_paragraph')); },
+      text: S('demo_main_text')
     },
     {
       target: '#ParagraphMethod',
-      text: 'כאן בוחרים איך לנקד את הפסקה: נקדימון מנקד לפי ההקשר במשפט, ' +
-          'ומילון נקדה מנקד כל מילה לבדה.' + demo_nakdan_text()
+      text: S('demo_method') + demo_nakdan_text()
     },
     {
       target: '#NikudizeButton',
-      text: 'עכשיו לוחצים על "נקד פסקה שלמה". ללחוץ בשבילכם?',
-      next: 'נקד',
+      text: S('demo_nikudize'),
+      next: S('demo_vocalize'),
       action: function(done, fail) {
         NikudizeButton.click();
         demo_wait(function() {
-          return demo_answer_word(DEMO_PARAGRAPH_WORD) !== null;
+          return demo_answer_word(S('demo_paragraph_word')) !== null;
         }, done, fail);
       }
     },
     {
       target: '#Answer',
-      text: 'הנה הפסקה המנוקדת. מילה שלא נמצא לה ניקוד מסומנת באדום ' +
-          'בקו גלי.'
+      text: S('demo_answer')
     },
     {
-      target: function() { return demo_answer_word(DEMO_PARAGRAPH_WORD); },
-      text: 'מילה נוקדה לא נכון? לוחצים עליה. ללחוץ בשבילכם על "' +
-          DEMO_PARAGRAPH_WORD + '"?',
-      next: 'לחצו',
+      target: function() { return demo_answer_word(S('demo_paragraph_word')); },
+      text: S('demo_click_word', {word: S('demo_paragraph_word')}),
+      next: S('demo_click'),
       action: function(done) {
-        demo_answer_word(DEMO_PARAGRAPH_WORD).click();
+        demo_answer_word(S('demo_paragraph_word')).click();
         done();
       }
     },
     {
       target: '#QuickyAns',
-      text: 'אלה אפשרויות הניקוד של המילה. לחיצה על אפשרות מחליפה את ' +
-          'המילה בטקסט, וכל לחיצה נוספת על המילה בטקסט עוברת לאפשרות ' +
-          'הבאה.'
+      text: S('demo_options')
     },
     {
       target: '#Quicky',
-      enter: function() { demo_fill(Quicky, DEMO_WORD); },
-      text: 'אפשר גם לנקד מילה בודדת: כותבים אותה כאן. הכנסנו את המילה "' +
-          DEMO_WORD + '".'
+      enter: function() { demo_fill(Quicky, S('demo_word')); },
+      text: S('demo_quicky', {word: S('demo_word')})
     },
     {
       target: '#QuickyButton',
-      text: 'לוחצים על "נקד מילה בודדת". ללחוץ בשבילכם?',
-      next: 'נקד',
+      text: S('demo_quicky_button'),
+      next: S('demo_vocalize'),
       action: function(done, fail) {
         QuickyButton.click();
         demo_wait(function() {
           var first = QuickyAns.querySelector(':scope > span');
-          return first !== null && demo_naked(first.textContent) === DEMO_WORD;
+          return first !== null && demo_naked(first.textContent) === S('demo_word');
         }, done, fail);
       }
     },
     {
       target: '#QuickyAns',
-      text: 'אלה כל הדרכים לנקד "' + DEMO_WORD + '". לחיצה על אפשרות ' +
-          'בוחרת אותה.'
+      text: S('demo_word_options', {word: S('demo_word')})
     },
     {
       target: '#HelpButton',
-      text: 'זהו! פרטים נוספים וקיצורי מקלדת יש בכפתור "עזרה", ואפשר ' +
-          'להריץ את ההדגמה שוב בכל עת.',
-      next: 'סיום'
+      text: S('demo_done'),
+      next: S('demo_finish')
     }
   ];
 }
@@ -253,10 +239,10 @@ function demo_show(index) {
 
   // In words: "1 / 11" in a right-to-left page is laid out as "11 / 1".
   demo_part('.demo-count').textContent =
-      'שלב ' + (index + 1) + ' מתוך ' + demoSteps.length;
+      S('demo_step', {step: index + 1, steps: demoSteps.length});
   demo_part('.demo-text').textContent = step.text;
   var last = index === demoSteps.length - 1;
-  demo_set_next(step.next || 'הבא', true);
+  demo_set_next(step.next || S('demo_next'), true);
   demo_part('.demo-stop').style.display = last ? 'none' : '';
   demo_place();
   demo_part('.demo-next').focus();
@@ -276,13 +262,12 @@ function demo_next() {
     demo_show(demoIndex + 1);
     return;
   }
-  demo_set_next('רגע...', false);
+  demo_set_next(S('demo_wait'), false);
   step.action(function() {
     demo_show(demoIndex + 1);
   }, function() {
-    demo_part('.demo-text').textContent =
-        'השרת לא ענה הפעם. אפשר לנסות שוב או לסיים את ההדגמה.';
-    demo_set_next('נסו שוב', true);
+    demo_part('.demo-text').textContent = S('demo_no_answer');
+    demo_set_next(S('demo_retry'), true);
     demo_place();
   });
 }
@@ -322,10 +307,11 @@ function demo_start() {
       '<div class="demo-text"></div>' +
       '<div class="demo-actions">' +
       '<button type="button" class="demo-next"></button>' +
-      '<button type="button" class="demo-stop">סיום</button>' +
+      '<button type="button" class="demo-stop"></button>' +
       '</div>' +
       '<div class="demo-arrow"></div>';
   demo_part('.demo-next').addEventListener('click', demo_next);
+  demo_part('.demo-stop').textContent = S('demo_finish');
   demo_part('.demo-stop').addEventListener('click', demo_end);
   document.body.appendChild(demoBalloon);
   window.addEventListener('resize', demo_place);

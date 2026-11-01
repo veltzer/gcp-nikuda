@@ -4,26 +4,8 @@
 	fix that, dictate my font.
 	document it.
 
-performance optimization:
-- can I control types of machines and their number?
-	yes: --max-instances (and --cpu/--memory if needed) in gcp_run_args in .gcp.conf.
-- maybe I need to compress the files I upload (the svg files say).
-- maybe I need to remove the parts of the app that I don't need.
-	(main.py).
-- gunicorn is what the Dockerfile runs. Is there a better one?
-- I wrote the app with flask, is there a faster one.
-- stop using unicode directly in nikuda.js. Many text editors and even browsers
-	do not know how to display files like these and allow you to comfortably
-	edit them. instead put the unicode values (\uXXXX).
-	use some tool to do it.
 - revamp the user interface to a new clean bright colored and easy on the eyes one.
 - add a new page in the site with word bubbles.
 	every word will be connected to similar words
 	(words close in edit distance).
 - add google analytics to track comings and goings to the site.
-- all hebrew string should be taken out of the javascript code
-	and then the javascript code should be made ascii again and pass js checks.
-- compress the javascript code to make everything run faster.
-	Cloud Run does not do this for us; it would have to happen in the Dockerfile
-	build or in front of the service (CDN).
-- compress the css and the html too.

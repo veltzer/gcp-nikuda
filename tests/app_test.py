@@ -1,5 +1,9 @@
 """ Test the nikuda flask app end to end with webtest. """
 
+import json
+import pathlib
+import re
+
 import webtest
 
 import main
@@ -36,6 +40,50 @@ def test_social_card():
     assert response.body[:8] == b"\x89PNG\r\n\x1a\n"
     assert int.from_bytes(response.body[16:20], "big") == 1200
     assert int.from_bytes(response.body[20:24], "big") == 630
+
+
+def test_compression():
+    """ Text replies are compressed with whatever the browser accepts. """
+    # Flask's client, not webtest: webtest tries to decode replies and has
+    # no brotli decoder.
+    client = main.app.test_client()
+
+    for path in ('/', '/static/js/nikuda.js', '/static/css/nikuda.css'):
+        plain = client.get(path)
+        assert "Content-Encoding" not in plain.headers
+        for encoding in ("br", "gzip"):
+            response = client.get(path, headers={"Accept-Encoding": encoding})
+            assert response.headers["Content-Encoding"] == encoding
+            assert len(response.data) < len(plain.data) / 2
+
+
+JS_DIR = pathlib.Path(main.HERE) / "js"
+
+
+def page_strings():
+    """ The #Strings JSON block of index.html, which the scripts read. """
+    page = (pathlib.Path(main.HERE) / "html" / "index.html").read_text(encoding="UTF8")
+    block = re.search(r'<script type="application/json" id="Strings">(.*?)</script>', page, re.DOTALL)
+    assert block is not None
+    return json.loads(block.group(1))
+
+
+def test_js_is_ascii():
+    """ The scripts carry no Hebrew: texts live in index.html's #Strings. """
+    for path in JS_DIR.glob("*.js"):
+        path.read_bytes().decode("ascii")
+
+
+def test_js_strings_exist():
+    """ Every S('key') the scripts use is in the #Strings block. """
+    strings = page_strings()
+    code = "".join(path.read_text(encoding="ascii") for path in JS_DIR.glob("*.js"))
+    keys = set(re.findall(r"\bS\('(\w+)'\s*[,)]", code))
+    # keys built at run time: S('theme_' + mode), REMOTE_METHODS names
+    keys |= {"theme_os", "theme_light", "theme_dark"}
+    keys |= set(re.findall(r"name: '(\w+)'", code))
+    assert keys
+    assert keys <= set(strings), keys - set(strings)
 
 
 def test_version():

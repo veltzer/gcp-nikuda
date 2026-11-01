@@ -21,3 +21,15 @@ Sat Oct 31 19:41:20 IST 2026
 Sat Oct 31 23:00:22 IST 2026
 	remove jQuery: nikuda.js and demo.js use the plain DOM, fetch and the Web Animations API.
 	Mark Veltzer
+Sun Nov  1 02:42:23 IST 2026
+	compress replies (brotli or gzip) with flask-compress.
+	Mark Veltzer
+Sun Nov  1 02:42:23 IST 2026
+	move every Hebrew text out of nikuda.js and demo.js into a JSON block in
+	index.html (read with S(key)); the scripts are ASCII, checked by a test.
+	Mark Veltzer
+Sun Nov  1 02:42:23 IST 2026
+	close TODO items: machine type/count (set in .gcp.conf), svg compression
+	(no svg is served), gunicorn/flask alternatives (not the bottleneck),
+	unneeded parts of main.py (none: every route and helper is used).
+	Mark Veltzer
