@@ -43,36 +43,120 @@ var REMOTE_METHODS = {
   nakdan: {url: 'app/nakdan', name: 'הנקדן של דיקטה', maxChars: 30000}
 };
 
-$.ajaxSetup({
-  contentType: 'application/json; charset=utf-8',
-  dataType: 'json'
-});
+// Small DOM helpers (the site used jQuery for these until 2026-10).
+
+// Server calls: POST data as JSON (or GET when data is undefined) and resolve
+// with the parsed JSON reply. A failed call rejects with {status, body} and
+// also fires 'nikuda:ajaxerror' on the document, which the demo listens for.
+function call_json(url, data) {
+  var options = {headers: {'Accept': 'application/json'}};
+  if (data !== undefined) {
+    options.method = 'POST';
+    options.headers['Content-Type'] = 'application/json; charset=utf-8';
+    options.body = JSON.stringify(data);
+  }
+  return fetch(url, options).then(function(response) {
+    return response.json().catch(function() {
+      return null;
+    }).then(function(body) {
+      if (!response.ok || body === null) {
+        throw {status: response.status, body: body};
+      }
+      return body;
+    });
+  }, function() {
+    throw {status: 0, body: null};
+  }).catch(function(error) {
+    document.dispatchEvent(new CustomEvent('nikuda:ajaxerror', {detail: error}));
+    throw error;
+  });
+}
+
+// Fade an element in or out over FADE_MS (instantly for users who asked the
+// system for reduced motion). Hidden means display: none, as with the
+// .help boxes whose stylesheet default is hidden.
+var FADE_MS = 600;
+
+function is_shown(elem) {
+  return !elem.nikudaHiding && getComputedStyle(elem).display !== 'none';
+}
+
+function fade_duration() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : FADE_MS;
+}
+
+function fade_in(elem) {
+  if (is_shown(elem)) {
+    return;
+  }
+  elem.nikudaHiding = false;
+  elem.style.display = '';
+  if (getComputedStyle(elem).display === 'none') {
+    elem.style.display = 'block';
+  }
+  var duration = fade_duration();
+  var animation = elem.animate([{opacity: 0}, {opacity: 1}], duration);
+  // As in fade_out: end it by timer so a stalled animation cannot leave the
+  // element transparent.
+  setTimeout(function() {
+    animation.cancel();
+  }, duration);
+}
+
+function fade_out(elem) {
+  if (!is_shown(elem)) {
+    return;
+  }
+  elem.nikudaHiding = true;
+  var duration = fade_duration();
+  elem.animate([{opacity: 1}, {opacity: 0}], {duration: duration, fill: 'forwards'});
+  // A timer, not the animation's onfinish: animations stall in a page that
+  // is not being painted, and the box must still end up hidden.
+  setTimeout(function() {
+    if (elem.nikudaHiding) {
+      elem.style.display = 'none';
+      elem.nikudaHiding = false;
+    }
+    elem.getAnimations().forEach(function(animation) {
+      animation.cancel();
+    });
+  }, duration);
+}
+
+// Append text to an element, turning each newline into a <br>. The text is
+// never parsed as HTML.
+function append_text(elem, text) {
+  var lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    if (i > 0) {
+      elem.appendChild(document.createElement('br'));
+    }
+    if (lines[i] !== '') {
+      elem.appendChild(document.createTextNode(lines[i]));
+    }
+  }
+}
 
 // General purpose methods
 
 var toastTimeout;
 function show_toast(text) {
-  var toast = $('#Toast');
+  var toast = document.getElementById('Toast');
   clearTimeout(toastTimeout);
   if (!text) {
-    toast.removeClass('toast-visible');
+    toast.classList.remove('toast-visible');
     return;
   }
-  toast.text(text).addClass('toast-visible');
+  toast.textContent = text;
+  toast.classList.add('toast-visible');
   toastTimeout = setTimeout(function() {
-    toast.removeClass('toast-visible');
+    toast.classList.remove('toast-visible');
   }, 4000);
 }
 
 function show_to_user(text) {
   if (text) {
     console.log(text);
-  }
-}
-
-function fake_use(x) {
-  if (x) {
-    window.junkvar = 'junkval';
   }
 }
 
@@ -88,61 +172,52 @@ function validate_Hebrew(evt) {
   }
 }
 
-// JSON AJAX punctuation function with success and error handlers
-function naked(sentWords, successHandler, doneHandler, errorHandler) {
+// JSON AJAX punctuation function with success and done handlers
+function naked(sentWords, successHandler, doneHandler) {
   // Update status
   show_to_user('מנקד...');
   // Go to the server with words & their respective IDs
-  $.post({
-    url: 'app/naked',
-    data: JSON.stringify(sentWords),
-    success: function(replyWords) {
-      // reset status
-      show_to_user('');
-      for (var i = 0; i < replyWords.length; i++) {
-        var nikudim = replyWords[i].Nikudim;
-        var original = replyWords[i].Naked;
+  call_json('app/naked', sentWords).then(function(replyWords) {
+    // reset status
+    show_to_user('');
+    for (var i = 0; i < replyWords.length; i++) {
+      var nikudim = replyWords[i].Nikudim;
+      var original = replyWords[i].Naked;
 
-        if (nikudim.length > 0) {
-          // Make sure we don't have duplicates in the DB
-          nikudim = remove_duplicates(nikudim);
-        }
-        else {
-          // Update status as failure
-          show_to_user('השרת לא מצא ניקוד למילה [' +
-                       original + ']');
-        }
-
-        // Add naked word to the punctuations at the end
-        nikudim.push(original);
-        // Call supplied success handler to handle naked punctuation
-        successHandler(nikudim, replyWords[i].ID);
+      if (nikudim.length > 0) {
+        // Make sure we don't have duplicates in the DB
+        nikudim = remove_duplicates(nikudim);
       }
-
-      if (typeof(doneHandler) === 'function') {
-        doneHandler();
-      }
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      if (typeof(errorHandler) === 'function') {
-        errorHandler(jqXHR, textStatus, errorThrown);
-      } else {
+      else {
         // Update status as failure
-        show_to_user('השרת נכשל בניקוד ' + textStatus);
+        show_to_user('השרת לא מצא ניקוד למילה [' +
+                     original + ']');
       }
+
+      // Add naked word to the punctuations at the end
+      nikudim.push(original);
+      // Call supplied success handler to handle naked punctuation
+      successHandler(nikudim, replyWords[i].ID);
     }
+
+    if (typeof(doneHandler) === 'function') {
+      doneHandler();
+    }
+  }, function(error) {
+    // Update status as failure
+    show_to_user('השרת נכשל בניקוד ' + error.status);
   });
 }
 
 var suggestID = 0;
 var currentInaked = 'משתנות';
 function Suggest() {
-  var inaked = Quicky.val();
+  var inaked = Quicky.value;
 
   // Do not suggest when the words are too short or havent changed
   if (inaked === currentInaked || inaked.length < 3) {
-    SuggestionBox.fadeOut('slow');
-    SuggestionList.children('li').remove();
+    fade_out(SuggestionBox);
+    SuggestionList.replaceChildren();
     return;
   } else {
     currentInaked = inaked;
@@ -154,42 +229,34 @@ function Suggest() {
   // request to appropriate reply
   suggestID = suggestID + 1;
   // Go to the server with the word & their respective IDs
-  $.post({
-    url: 'app/suggest',
-    data: JSON.stringify({ Naked: inaked, ID: suggestID }),
-    success: function(replyWord) {
-      // reset status
-      show_to_user('');
+  call_json('app/suggest', {Naked: inaked, ID: suggestID}).then(function(replyWord) {
+    // reset status
+    show_to_user('');
 
-      // Clear the old
-      SuggestionList.children('li').remove();
+    // Clear the old
+    SuggestionList.replaceChildren();
 
-      var nakeds = replyWord.Nakeds;
-      var ID = replyWord.ID;
+    var nakeds = replyWord.Nakeds;
+    var ID = replyWord.ID;
 
-      if ((ID === suggestID) && (nakeds.length > 0)) {
-        // fade in the suggestion box if it is hidden
-        SuggestionBox.fadeIn('slow');
-        // Add all suggestions to suggestion list
-        // as received from server
-        for (var i = 0; i < nakeds.length; i++) {
-          // Create new DOM list element
-          // Append element to the suggestion list
-          SuggestionList.append($('<li>', {text: nakeds[i]}));
-        }
+    if ((ID === suggestID) && (nakeds.length > 0)) {
+      // fade in the suggestion box if it is hidden
+      fade_in(SuggestionBox);
+      // Add all suggestions to suggestion list as received from server
+      for (var i = 0; i < nakeds.length; i++) {
+        var item = document.createElement('li');
+        item.textContent = nakeds[i];
+        SuggestionList.appendChild(item);
       }
-      else {
-        // if we have no suggestions or this is a misplaced
-        // suggestion request then fadeout the box
-        SuggestionBox.fadeOut('slow');
-      }
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-      fake_use(textStatus);
-      fake_use(jqXHR);
-      // Update status as failure
-      show_to_user('Auto suggest method failed: ' + errorThrown);
     }
+    else {
+      // if we have no suggestions or this is a misplaced
+      // suggestion request then fadeout the box
+      fade_out(SuggestionBox);
+    }
+  }, function(error) {
+    // Update status as failure
+    show_to_user('Auto suggest method failed: ' + error.status);
   });
 }
 
@@ -217,7 +284,7 @@ function print_nikudim(nikudim) {
   var spElem = print_nikud(nikudim[0]);
 
   // Set title attribute to hold all possible punctuations
-  spElem.attr('title', nikudim);
+  spElem.title = nikudim.join(',');
 
   // Mark unpunctuated words with red underline
   var hasNikud = false;
@@ -228,12 +295,12 @@ function print_nikudim(nikudim) {
     }
   }
   if (!hasNikud) {
-    spElem.addClass('unpunctuated');
+    spElem.classList.add('unpunctuated');
   }
 
-  // Set unique ID data of the span element
+  // Set unique ID of the span element
   runningID = runningID + 1;
-  spElem.data('ID', runningID);
+  spElem.nikudaID = runningID;
 
   // Return the span dom element
   return spElem;
@@ -241,17 +308,18 @@ function print_nikudim(nikudim) {
 
 function print_nikud(nikud) {
   // Create new DOM span element with some attributres and return it
-  return $('<span>', {
-    style: 'cursor: pointer',
-    text: nikud});
+  var spElem = document.createElement('span');
+  spElem.style.cursor = 'pointer';
+  spElem.textContent = nikud;
+  return spElem;
 }
 
 function cycle_nikud() {
   // Get possible punctuations from title
-  var nikudim = trim($(origElemRef).attr('title')).split(',');
+  var nikudim = trim(origElemRef.title).split(',');
 
   // Find the current punctuation in the punctuations list
-  var currentNikud = trim($(origElemRef).text());
+  var currentNikud = trim(origElemRef.textContent);
   for (var i = 0; i < nikudim.length; i++) {
     if (nikudim[i] === currentNikud) {
       break;
@@ -259,19 +327,19 @@ function cycle_nikud() {
   }
   var newNikud = ((i === nikudim.length - 1) ? nikudim[0] : nikudim[i + 1]);
 
-  $(origElemRef).text(newNikud);
+  origElemRef.textContent = newNikud;
 
   select_option(newNikud);
 }
 
 function change_nikud(elem) {
-  var newNikud = trim($(elem).text());
+  var newNikud = trim(elem.textContent);
 
   // If we have an orig element referece then update it
   if (origElemRef !== false) {
     // Check that this is a punctuation of the origElemRef
-    if ($(origElemRef).data('ID') === $(elem).data('ID')) {
-      $(origElemRef).text(newNikud);
+    if (origElemRef.nikudaID === elem.nikudaID) {
+      origElemRef.textContent = newNikud;
     }
   }
 
@@ -280,18 +348,16 @@ function change_nikud(elem) {
 
 function nikudize(doneHandler) {
   // Reset input boxes
-  SuggestionList.children('li').remove();
-  Quicky.val('');
+  SuggestionList.replaceChildren();
+  Quicky.value = '';
   update_buttons();
 
   // Hide all other punctuation ways punctuate automatic and focus on text
-  MeNaked.addClass('me-naked-hidden');
+  MeNaked.classList.add('me-naked-hidden');
 
-  var txt = MainText.val();
-  txt = txt.replace(/\n/g, '<br>');
+  var txt = MainText.value;
 
-  Answer.children('span').remove();
-  Answer.text('');
+  Answer.replaceChildren();
 
   // Build word list array (sent to server)
   var sentWords = Array();
@@ -300,13 +366,13 @@ function nikudize(doneHandler) {
     if (pos > 0)
     {
       // Add whatever came b4 the word to the div element
-      Answer.append(txt.substring(0, pos));
+      append_text(Answer, txt.substring(0, pos));
       txt = txt.substr(pos);
     }
     if (pos < 0)
     {
       // Add whats left of the text to the div element
-      Answer.append(txt);
+      append_text(Answer, txt);
       break;
     }
     // Now our text begins with the next word
@@ -319,7 +385,7 @@ function nikudize(doneHandler) {
     var word = do_enders(txt.substr(0, last));
 
     // Add a span element containing the word to the answer
-    Answer.append(print_nikudim([word]));
+    Answer.appendChild(print_nikudim([word]));
 
     sentWords.push(
         {Naked: word,
@@ -333,14 +399,13 @@ function nikudize(doneHandler) {
   naked(
         sentWords,
         function(nikudim, nikudID) {
-        $.each(Answer.children('span'), function(index, element) {
-          fake_use(index);
-          if ($.data(element, 'ID') === nikudID) {
-            $(element).replaceWith(print_nikudim(nikudim));
-            return false;
+        var spans = Answer.querySelectorAll(':scope > span');
+        for (var i = 0; i < spans.length; i++) {
+          if (spans[i].nikudaID === nikudID) {
+            spans[i].replaceWith(print_nikudim(nikudim));
+            break;
           }
-          return undefined;
-        });
+        }
       },
         function() {
         if (typeof(doneHandler) === 'function') {
@@ -352,12 +417,12 @@ function nikudize(doneHandler) {
 // Same as nikudize, but the whole paragraph is punctuated in context by a
 // server side method (one of REMOTE_METHODS) instead of word by word.
 function nikudize_remote(method) {
-  SuggestionList.children('li').remove();
-  Quicky.val('');
+  SuggestionList.replaceChildren();
+  Quicky.value = '';
   update_buttons();
-  MeNaked.addClass('me-naked-hidden');
+  MeNaked.classList.add('me-naked-hidden');
 
-  var txt = MainText.val();
+  var txt = MainText.value;
   if (txt.length > method.maxChars) {
     show_toast('הטקסט ארוך מדי ל' + method.name + ' (עד ' + method.maxChars + ' תווים)');
     return;
@@ -366,62 +431,50 @@ function nikudize_remote(method) {
   show_toast('מנקד בעזרת ' + method.name + '...');
   paragraphBusy = true;
   update_buttons();
-  $.post({
-    url: method.url,
-    data: JSON.stringify({Text: txt}),
-    success: function(tokens) {
-      show_toast('');
-      Answer.children('span').remove();
-      Answer.text('');
-      for (var i = 0; i < tokens.length; i++) {
-        var token = tokens[i];
-        if (token.Sep || token.Nikudim.length === 0) {
-          // Separators (and anything not Hebrew) are copied as is
-          var lines = token.Str.split('\n');
-          for (var j = 0; j < lines.length; j++) {
-            if (j > 0) {
-              Answer.append('<br>');
-            }
-            Answer.append(document.createTextNode(lines[j]));
-          }
-        } else {
-          // Keep the naked word last, as naked() does
-          var nikudim = token.Nikudim.slice();
-          nikudim.push(token.Str);
-          Answer.append(print_nikudim(nikudim));
-        }
-      }
-    },
-    error: function(jqXHR) {
-      if (jqXHR.status === 429) {
-        var wait = Math.ceil(jqXHR.responseJSON.RetryAfter);
-        show_toast(method.name + ' עסוק, נסו שוב בעוד ' + wait + ' שניות');
+  call_json(method.url, {Text: txt}).then(function(tokens) {
+    show_toast('');
+    Answer.replaceChildren();
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.Sep || token.Nikudim.length === 0) {
+        // Separators (and anything not Hebrew) are copied as is
+        append_text(Answer, token.Str);
       } else {
-        show_toast(method.name + ' נכשל (' + jqXHR.status + ')');
+        // Keep the naked word last, as naked() does
+        var nikudim = token.Nikudim.slice();
+        nikudim.push(token.Str);
+        Answer.appendChild(print_nikudim(nikudim));
       }
-    },
-    complete: function() {
-      paragraphBusy = false;
-      update_buttons();
     }
+  }, function(error) {
+    if (error.status === 429 && error.body) {
+      var wait = Math.ceil(error.body.RetryAfter);
+      show_toast(method.name + ' עסוק, נסו שוב בעוד ' + wait + ' שניות');
+    } else {
+      show_toast(method.name + ' נכשל (' + error.status + ')');
+    }
+  }).finally(function() {
+    paragraphBusy = false;
+    update_buttons();
   });
 }
 
 function set_QuickyAns(nikudim, nikud, ID) {
   // Add the words to the QuickyAns
-  QuickyAns.children('span').remove();
-  QuickyAns.text('');
+  QuickyAns.replaceChildren();
 
   // Add all possible punctuations to the QuickyAns div with the
   // origElemRef ID
   for (var i = 0; i < nikudim.length; i++) {
-    QuickyAns.append(print_nikud(nikudim[i]).data('ID', ID));
-    QuickyAns.append(' ');
+    var option = print_nikud(nikudim[i]);
+    option.nikudaID = ID;
+    QuickyAns.appendChild(option);
+    QuickyAns.appendChild(document.createTextNode(' '));
   }
 
   // Update quicky with naked word
-  SuggestionList.children('li').remove();
-  Quicky.val(trim(nikud).replace(nikudRegExp, ''));
+  SuggestionList.replaceChildren();
+  Quicky.value = trim(nikud).replace(nikudRegExp, '');
   update_buttons();
   select_option(nikud);
 }
@@ -429,24 +482,22 @@ function set_QuickyAns(nikudim, nikud, ID) {
 // Bold the chosen form among the options and show them
 function select_option(nikud) {
   show_to_user('');
-  QuickyAns.children('span').css('font-weight', 'normal');
-  $.each(QuickyAns.children('span'), function(index, element) {
-    fake_use(index);
-    if ($(element).text() === nikud) {
-      $(element).css('font-weight', 'bold');
-      return false;
-    }
-    return undefined;
-  });
+  var options = QuickyAns.querySelectorAll(':scope > span');
+  var found = false;
+  for (var i = 0; i < options.length; i++) {
+    var chosen = !found && options[i].textContent === nikud;
+    options[i].style.fontWeight = chosen ? 'bold' : 'normal';
+    found = found || chosen;
+  }
   // (if already shown, does nothing)
-  MeNaked.removeClass('me-naked-hidden');
+  MeNaked.classList.remove('me-naked-hidden');
 }
 
 // Each button is enabled only while the box above it has something in it
 // (and the paragraph button not while a paragraph is being punctuated)
 function update_buttons() {
-  NikudizeButton.prop('disabled', paragraphBusy || trim(MainText.val()) === '');
-  QuickyButton.prop('disabled', trim(Quicky.val()) === '');
+  NikudizeButton.disabled = paragraphBusy || trim(MainText.value) === '';
+  QuickyButton.disabled = trim(Quicky.value) === '';
 }
 
 function trim(str) {
@@ -514,90 +565,95 @@ function do_enders(word) {
   return word;
 }
 
+// The page's controls, looked up once the document is ready (demo.js uses
+// them too).
+var MainText, MeNaked, Quicky, SuggestionBox, SuggestionList, QuickyAns;
+var Answer, HelpBox, MemorialBox, NikudizeButton, QuickyButton;
+
+// Close a floating box (help, memorial) on Escape or a click outside it and
+// its button.
+function setup_floater(box, button) {
+  button.addEventListener('click', function() {
+    fade_in(box);
+  });
+  document.addEventListener('keydown', function(evt) {
+    if (evt.key === 'Escape') {
+      fade_out(box);
+    }
+  });
+  document.addEventListener('click', function(evt) {
+    if (is_shown(box) && !box.contains(evt.target) && !button.contains(evt.target)) {
+      fade_out(box);
+    }
+  });
+}
+
 // On document ready event (to be run after document loading)
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
   // Get the main constant participants by their ids to save searching the
   // DOM later
-  MainText = $('#MainText');
-  MeNaked = $('#MeNaked');
-  Quicky = $('#Quicky');
-  SuggestionBox = $('#SuggestionBox');
-  SuggestionList = $('#SuggestionList');
-  QuickyAns = $('#QuickyAns');
-  Answer = $('#Answer');
-  HelpBox = $('#HelpBox');
-  NikudizeButton = $('#NikudizeButton');
-  QuickyButton = $('#QuickyButton');
-  //SelectAll = $('#SelectAll');
+  MainText = document.getElementById('MainText');
+  MeNaked = document.getElementById('MeNaked');
+  Quicky = document.getElementById('Quicky');
+  SuggestionBox = document.getElementById('SuggestionBox');
+  SuggestionList = document.getElementById('SuggestionList');
+  QuickyAns = document.getElementById('QuickyAns');
+  Answer = document.getElementById('Answer');
+  HelpBox = document.getElementById('HelpBox');
+  MemorialBox = document.getElementById('MemorialBox');
+  NikudizeButton = document.getElementById('NikudizeButton');
+  QuickyButton = document.getElementById('QuickyButton');
   // Sometimes the browsers decide to save the latest state of the inputs
   // so override them
-  MainText.removeAttr('disabled');
-  Quicky.removeAttr('disabled');
+  MainText.disabled = false;
+  Quicky.disabled = false;
   update_buttons();
-  MainText.on('input', update_buttons);
-  Quicky.on('input', update_buttons);
-
-  // Input fields start empty; placeholders provide guidance
+  MainText.addEventListener('input', update_buttons);
+  Quicky.addEventListener('input', update_buttons);
 
   // Clear placeholder and value on first user focus
-  MainText.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); update_buttons(); });
-  Quicky.one('focus', function() { $(this).removeAttr('placeholder'); $(this).val(''); update_buttons(); });
+  [MainText, Quicky].forEach(function(input) {
+    input.addEventListener('focus', function() {
+      input.removeAttribute('placeholder');
+      input.value = '';
+      update_buttons();
+    }, {once: true});
+  });
 
-  // Enter in MainText triggers NikudizeButton
-  MainText.keydown(function(evt) {
+  // Enter in MainText triggers NikudizeButton, Enter in Quicky QuickyButton
+  // (a disabled button ignores click())
+  MainText.addEventListener('keydown', function(evt) {
     if (evt.key === 'Enter') {
       evt.preventDefault();
-      // .click() runs the handler even on a disabled button
-      if (!NikudizeButton.prop('disabled')) {
-        NikudizeButton.click();
-      }
+      NikudizeButton.click();
     }
   });
-
-  // Enter in Quicky triggers QuickyButton
-  Quicky.keydown(function(evt) {
+  Quicky.addEventListener('keydown', function(evt) {
     if (evt.key === 'Enter') {
       evt.preventDefault();
-      if (!QuickyButton.prop('disabled')) {
-        QuickyButton.click();
-      }
+      QuickyButton.click();
     }
   });
 
-  // Escape key closes floating windows
-  $(document).keydown(function(evt) {
-    if (evt.key === 'Escape') {
-      HelpBox.hide('slow');
-      $('#MemorialBox').hide('slow');
-    }
-  });
-
-  // Click outside floater closes it
-  $(document).click(function(evt) {
-    if (HelpBox.is(':visible') && !$(evt.target).closest('#HelpBox, #HelpButton').length) {
-      HelpBox.hide('slow');
-    }
-    if ($('#MemorialBox').is(':visible') && !$(evt.target).closest('#MemorialBox, #MemorialButton').length) {
-      $('#MemorialBox').hide('slow');
-    }
-  });
+  setup_floater(HelpBox, document.getElementById('HelpButton'));
+  setup_floater(MemorialBox, document.getElementById('MemorialButton'));
 
   // Make the MainText keypress event validate its input
-  MainText.keydown(validate_Hebrew);
+  MainText.addEventListener('keydown', validate_Hebrew);
   // Setup the Answer click event to handle all text word clicks
-  Answer.click(function(evt) {
-    if ($(evt.target).is('span')) {
+  Answer.addEventListener('click', function(evt) {
+    if (evt.target.tagName === 'SPAN') {
       // Change the original element reference and bold it
       if (origElemRef !== evt.target) {
         if (origElemRef !== false) {
-          $(origElemRef).css('font-weight', 'normal');
+          origElemRef.style.fontWeight = 'normal';
         }
 
         origElemRef = evt.target;
-        $(origElemRef).css('font-weight', 'bold');
+        origElemRef.style.fontWeight = 'bold';
 
-        set_QuickyAns($(origElemRef).attr('title').split(','),
-            $(origElemRef).text(), $(origElemRef).data('ID'));
+        set_QuickyAns(origElemRef.title.split(','),
+            origElemRef.textContent, origElemRef.nikudaID);
       }
       else {
         // Cycle possible punctuations and set the draft area appropriately
@@ -607,20 +663,19 @@ $(document).ready(function() {
   });
 
   // Make the Quicky keypress event validate its input
-  Quicky.keydown(validate_Hebrew);
+  Quicky.addEventListener('keydown', validate_Hebrew);
   // Setup the QuickyAns click event to handle all punctuation option
   // word clicks
-  QuickyAns.click(function(evt) {
-    if ($(evt.target).is('span')) {
+  QuickyAns.addEventListener('click', function(evt) {
+    if (evt.target.tagName === 'SPAN') {
       // Set the answer punctuation and set the draft area appropriately
       change_nikud(evt.target);
     }
   });
 
   // Setup the form buttons
-  NikudizeButton.click(function(evt) {
-    fake_use(evt);
-    var method = $('#ParagraphMethod').val();
+  NikudizeButton.addEventListener('click', function() {
+    var method = document.getElementById('ParagraphMethod').value;
     if (method in REMOTE_METHODS) {
       nikudize_remote(REMOTE_METHODS[method]);
     } else {
@@ -628,146 +683,122 @@ $(document).ready(function() {
     }
   });
 
-  function update_QuickyAns(minAllowed) {
-    return function(evt) {
-      fake_use(evt);
-      if (Quicky.val().length > 0) {
-        if (origElemRef !== false) {
-          if (trim(Quicky.val()) !==
-              trim($(origElemRef).text()).replace(nikudRegExp, '')) {
-            // We are no longer working on a main text word so remove
-            // the reference and unbolden it
-            $(origElemRef).css('font-weight', 'normal');
-            origElemRef = false;
-          }
+  // Look up the word in Quicky and offer its forms in QuickyAns
+  function quicky_lookup() {
+    if (Quicky.value.length > 0) {
+      if (origElemRef !== false) {
+        if (trim(Quicky.value) !==
+            trim(origElemRef.textContent).replace(nikudRegExp, '')) {
+          // We are no longer working on a main text word so remove
+          // the reference and unbolden it
+          origElemRef.style.fontWeight = 'normal';
+          origElemRef = false;
         }
-
-        // Get new ID and send word to punctuation
-        runningID++;
-        naked(
-            Array({Naked: do_enders(Quicky.val()), ID: runningID}),
-            function(nikudim, nikudID) {
-              // If we get an in time non empty reply for the current
-              // requested word
-              if (runningID === nikudID) {
-                if (nikudim.length > minAllowed) {
-                  // Set the first possibility for punctuation
-                  set_QuickyAns(nikudim, nikudim[0], nikudID);
-                  return false;
-                }
-              }
-              return undefined;
-            });
       }
-    };
+
+      // Get new ID and send word to punctuation
+      runningID++;
+      naked(
+          Array({Naked: do_enders(Quicky.value), ID: runningID}),
+          function(nikudim, nikudID) {
+            // If we get an in time non empty reply for the current
+            // requested word, set the first possibility for punctuation
+            if (runningID === nikudID && nikudim.length > 0) {
+              set_QuickyAns(nikudim, nikudim[0], nikudID);
+            }
+          });
+    }
   }
 
-  QuickyButton.click(update_QuickyAns(0));
-  Quicky.keyup(function(evt) {
-    fake_use(evt);
-    Suggest();
+  QuickyButton.addEventListener('click', quicky_lookup);
+  Quicky.addEventListener('keyup', Suggest);
+  Quicky.addEventListener('blur', function() {
+    fade_out(SuggestionBox);
   });
-  Quicky.blur(function(evt) {
-    fake_use(evt);
-    SuggestionBox.fadeOut('slow');
-  });
-  Quicky.focus(function(evt) {
-    fake_use(evt);
+  Quicky.addEventListener('focus', function() {
     // Only fade in the suggestion box if there are items there
-    if (SuggestionList.children('li').length > 0) {
-      SuggestionBox.fadeIn('slow');
+    if (SuggestionList.children.length > 0) {
+      fade_in(SuggestionBox);
     }
   });
-  Quicky.submit(update_QuickyAns(0));
-  SuggestionList.click(function(evt) {
-    if ($(evt.target).is('li')) {
-      // Remove all suggestions
-      SuggestionList.children('li').remove();
-      SuggestionBox.hide('slow');
-      // Insert suggestions to quicky box and update
-      Quicky.val($(evt.target).text());
+  SuggestionList.addEventListener('click', function(evt) {
+    if (evt.target.tagName === 'LI') {
+      // Insert the suggestion into the quicky box and look it up
+      Quicky.value = evt.target.textContent;
+      SuggestionList.replaceChildren();
+      fade_out(SuggestionBox);
       update_buttons();
-      Quicky.submit();
+      quicky_lookup();
     }
   });
 
   // Theme toggle: cycle os -> light -> dark -> os, persist, and update button
-  var ThemeToggle = $('#ThemeToggle');
-  var ThemeLabel = $('#ThemeLabel');
+  var ThemeLabel = document.getElementById('ThemeLabel');
 
   function refresh_theme_button(mode) {
-    ThemeLabel.text(THEME_META[mode].label);
-  }
-
-  function set_theme(mode) {
-    apply_theme(mode);
-    try {
-      window.localStorage.setItem('theme', mode);
-    } catch (e) {
-      fake_use(e);
-    }
-    refresh_theme_button(mode);
+    ThemeLabel.textContent = THEME_META[mode].label;
   }
 
   // Reflect the theme that was applied early in the page load
   refresh_theme_button(get_theme());
 
-  ThemeToggle.click(function(evt) {
-    fake_use(evt);
+  document.getElementById('ThemeToggle').addEventListener('click', function() {
     var current = get_theme();
     var next = THEME_MODES[(THEME_MODES.indexOf(current) + 1) % THEME_MODES.length];
-    set_theme(next);
+    apply_theme(next);
+    try {
+      window.localStorage.setItem('theme', next);
+    } catch (e) {
+      // private windows may refuse storage; the theme still applies
+    }
+    refresh_theme_button(next);
   });
 
-  //SelectAll.click(function(evt) {
-  //  fake_use(evt);
-  //  Answer.children().select();
-  //});
-
   // Show pre-punctuated welcome text with clickable spans
-  Answer.children('span').remove();
-  Answer.text('');
+  Answer.replaceChildren();
   var welcomeWords = [
-    '\u05D1\u05BC\u05B0\u05E8\u05D5\u05BC\u05DB\u05B4\u05D9\u05DD',
-    '\u05D4\u05B7\u05D1\u05BC\u05B8\u05D0\u05B4\u05D9\u05DD',
-    '\u05DC\u05E0\u05B4\u05E7\u05BB\u05D3\u05B7\u05D4\u05BC!',
+    'בְּרוּכִים',
+    'הַבָּאִים',
+    'לנִקֻדַהּ!',
     '\n',
-    '\u05DC\u05B8\u05D7\u05B2\u05E6\u05D5\u05BC',
-    '\u05E2\u05B7\u05DC',
-    '\u05D4\u05B7\u05DE\u05BC\u05B4\u05DC\u05BC\u05B4\u05D9\u05DD',
-    '\u05DB\u05BC\u05B8\u05D0\u05DF',
-    '\u05D5\u05BC\u05E8\u05B0\u05D0\u05D5\u05BC',
-    '\u05DB\u05BC\u05B5\u05D9\u05E6\u05B7\u05D3',
-    '\u05D4\u05B5\u05DF',
-    '\u05DE\u05B7\u05E9\u05C1\u05B0\u05EA\u05B7\u05E0\u05BC\u05D5\u05B9\u05EA.',
+    'לָחֲצוּ',
+    'עַל',
+    'הַמִּלִּים',
+    'כָּאן',
+    'וּרְאוּ',
+    'כֵּיצַד',
+    'הֵן',
+    'מַשְׁתַנּוֹת.',
     '\n',
-    '\u05E9\u05C1\u05B4\u05DE\u05BC\u05D5\u05BC\u05E9\u05C1',
-    '\u05DE\u05BB\u05E6\u05B0\u05DC\u05B8\u05D7!'
+    'שִׁמּוּשׁ',
+    'מֻצְלָח!'
   ];
   for (var i = 0; i < welcomeWords.length; i++) {
     if (welcomeWords[i] === '\n') {
-      Answer.append('<br>');
+      Answer.appendChild(document.createElement('br'));
     } else {
-      Answer.append(print_nikudim([welcomeWords[i]]));
+      Answer.appendChild(print_nikudim([welcomeWords[i]]));
       if (i + 1 < welcomeWords.length && welcomeWords[i + 1] !== '\n') {
-        Answer.append(' ');
+        Answer.appendChild(document.createTextNode(' '));
       }
     }
   }
 
   // Offer Dicta's Nakdan only when the server is configured for it
-  $.getJSON('app/features', function(features) {
+  call_json('app/features').then(function(features) {
     if (features.nakdan) {
-      $('#NakdanMethod').removeAttr('disabled').removeAttr('hidden');
-      $('#NakdanCredit').show();
+      var option = document.getElementById('NakdanMethod');
+      option.disabled = false;
+      option.hidden = false;
+      document.getElementById('NakdanCredit').style.display = '';
+      document.getElementById('NakdanHelp').style.display = '';
     }
-  });
+  }, function() {});
 
   // Show which version is serving: git describe, deploy date and the Cloud
-  // Run revision, stamped by scripts/deploy.sh and served by app/version.
-  $.getJSON('app/version', function(info) {
-    $('#VersionInfo').text(
-        info.git_describe + ' · ' + info.deploy_date + ' · ' +
-        info.revision);
-  });
+  // Run revision, stamped by gcloud_run_deploy.sh and served by app/version.
+  call_json('app/version').then(function(info) {
+    document.getElementById('VersionInfo').textContent =
+        info.git_describe + ' · ' + info.deploy_date + ' · ' + info.revision;
+  }, function() {});
 });

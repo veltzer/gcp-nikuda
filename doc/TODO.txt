@@ -27,5 +27,3 @@ performance optimization:
 	Cloud Run does not do this for us; it would have to happen in the Dockerfile
 	build or in front of the service (CDN).
 - compress the css and the html too.
-- make sure that jquery is the compressed version.
-- use a new version of jquery.

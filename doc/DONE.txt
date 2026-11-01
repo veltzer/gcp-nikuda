@@ -18,3 +18,6 @@ Fri Sep  4 2026
 Sat Oct 31 19:41:20 IST 2026
 	add a link/social preview card (Open Graph and Twitter meta tags, src/images/social_card.png).
 	Mark Veltzer
+Sat Oct 31 23:00:22 IST 2026
+	remove jQuery: nikuda.js and demo.js use the plain DOM, fetch and the Web Animations API.
+	Mark Veltzer

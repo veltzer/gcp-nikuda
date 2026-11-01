@@ -21,7 +21,7 @@ from nakdimon.config import MAIN_MODEL as NAKDIMON_MODEL
 
 # The only directories served over /static/. Everything else under src/
 # (main.py, data/) is not reachable over HTTP.
-ASSET_DIRS = {"css", "images", "js", "js_tp"}
+ASSET_DIRS = {"css", "images", "js"}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # build_info.json is written next to src/, at the repo (and image) root.

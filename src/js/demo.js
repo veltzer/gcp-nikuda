@@ -4,7 +4,8 @@
 // paragraph and word.
 //
 // Uses the globals that nikuda.js sets up on document ready (MainText,
-// Answer, Quicky, QuickyAns, NikudizeButton, QuickyButton, nikudRegExp).
+// Answer, Quicky, QuickyAns, NikudizeButton, QuickyButton, nikudRegExp) and
+// the 'nikuda:ajaxerror' event its call_json() fires on a failed request.
 
 var DEMO_PARAGRAPH =
     'בשבוע שעבר נסענו לירושלים עם המשפחה. טיילנו בעיר העתיקה, ' +
@@ -26,6 +27,7 @@ var demoBalloon = null;
 var demoTarget = null;
 var demoTimer = null;
 var demoShownAt = 0;
+var demoFail = null;
 
 function demo_naked(text) {
   return text.replace(nikudRegExp, '');
@@ -33,35 +35,35 @@ function demo_naked(text) {
 
 // The span in the vocalized paragraph that holds word, once vocalized.
 function demo_answer_word(word) {
-  var found = null;
-  Answer.children('span').each(function() {
-    var text = $(this).text();
+  var spans = Answer.querySelectorAll(':scope > span');
+  for (var i = 0; i < spans.length; i++) {
+    var text = spans[i].textContent;
     if (demo_naked(text) === word && text.search(nikudRegExp) !== -1) {
-      found = this;
-      return false;
+      return spans[i];
     }
-    return undefined;
-  });
-  return found;
+  }
+  return null;
 }
 
 // Fill an input as if typed, first running its one-time focus handler
-// (which clears the box) so it does not wipe the demo text later.
+// (which clears the box) so it does not wipe the demo text later. A
+// dispatched focus event runs the handlers without moving the focus.
 function demo_fill(input, text) {
-  input.triggerHandler('focus');
-  input.removeAttr('placeholder');
-  input.val(text);
+  input.dispatchEvent(new Event('focus'));
+  input.removeAttribute('placeholder');
+  input.value = text;
   // enables the button under the input, as typing would
-  input.trigger('input');
+  input.dispatchEvent(new Event('input'));
 }
 
 // Call done once check() holds; call fail on a failed request or timeout.
 function demo_wait(check, done, fail) {
   var start = Date.now();
-  $(document).on('ajaxError.demo', function() {
+  demoFail = function() {
     demo_stop_waiting();
     fail();
-  });
+  };
+  document.addEventListener('nikuda:ajaxerror', demoFail);
   demoTimer = setInterval(function() {
     if (check()) {
       demo_stop_waiting();
@@ -76,7 +78,17 @@ function demo_wait(check, done, fail) {
 function demo_stop_waiting() {
   clearInterval(demoTimer);
   demoTimer = null;
-  $(document).off('ajaxError.demo');
+  if (demoFail) {
+    document.removeEventListener('nikuda:ajaxerror', demoFail);
+    demoFail = null;
+  }
+}
+
+// The sentence about Dicta's Nakdan, only when nikuda.js has offered it
+// (the server is configured for it).
+function demo_nakdan_text() {
+  return document.getElementById('NakdanMethod').hidden ? '' :
+      ' הנקדן של דיקטה מנקד גם הוא לפי ההקשר, בעזרת השירות של dicta.org.il.';
 }
 
 function demo_build_steps() {
@@ -95,7 +107,7 @@ function demo_build_steps() {
     {
       target: '#ParagraphMethod',
       text: 'כאן בוחרים איך לנקד את הפסקה: נקדימון מנקד לפי ההקשר במשפט, ' +
-          'ומילון נקדה מנקד כל מילה לבדה.'
+          'ומילון נקדה מנקד כל מילה לבדה.' + demo_nakdan_text()
     },
     {
       target: '#NikudizeButton',
@@ -119,7 +131,7 @@ function demo_build_steps() {
           DEMO_PARAGRAPH_WORD + '"?',
       next: 'לחצו',
       action: function(done) {
-        $(demo_answer_word(DEMO_PARAGRAPH_WORD)).trigger('click');
+        demo_answer_word(DEMO_PARAGRAPH_WORD).click();
         done();
       }
     },
@@ -142,8 +154,8 @@ function demo_build_steps() {
       action: function(done, fail) {
         QuickyButton.click();
         demo_wait(function() {
-          var first = QuickyAns.children('span').first();
-          return first.length > 0 && demo_naked(first.text()) === DEMO_WORD;
+          var first = QuickyAns.querySelector(':scope > span');
+          return first !== null && demo_naked(first.textContent) === DEMO_WORD;
         }, done, fail);
       }
     },
@@ -166,7 +178,7 @@ function demo_resolve_target(step) {
     return null;
   }
   var target = (typeof step.target === 'function') ?
-      step.target() : $(step.target)[0];
+      step.target() : document.querySelector(step.target);
   return target || null;
 }
 
@@ -174,16 +186,16 @@ function demo_place() {
   if (!demoBalloon) {
     return;
   }
-  var balloon = demoBalloon[0];
+  var balloon = demoBalloon;
   var margin = 8;
   var gap = 14;
   var width = balloon.offsetWidth;
   var height = balloon.offsetHeight;
   var view = {w: window.innerWidth, h: window.innerHeight};
-  demoBalloon.removeClass('demo-above demo-below demo-center');
+  balloon.classList.remove('demo-above', 'demo-below', 'demo-center');
 
   if (!demoTarget) {
-    demoBalloon.addClass('demo-center');
+    balloon.classList.add('demo-center');
     balloon.style.left = Math.max(margin, (view.w - width) / 2) + 'px';
     balloon.style.top = Math.max(margin, (view.h - height) / 2) + 'px';
     return;
@@ -193,10 +205,10 @@ function demo_place() {
   var top = rect.bottom + gap;
   if (top + height > view.h - margin && rect.top - gap - height >= margin) {
     top = rect.top - gap - height;
-    demoBalloon.addClass('demo-above');
+    balloon.classList.add('demo-above');
   } else {
     top = Math.min(top, view.h - height - margin);
-    demoBalloon.addClass('demo-below');
+    balloon.classList.add('demo-below');
   }
   var center = rect.left + rect.width / 2;
   var left = Math.min(Math.max(margin, center - width / 2),
@@ -204,12 +216,30 @@ function demo_place() {
   balloon.style.left = left + 'px';
   balloon.style.top = Math.max(margin, top) + 'px';
   var arrow = Math.min(Math.max(18, center - left), width - 18);
-  demoBalloon.find('.demo-arrow').css('left', arrow + 'px');
+  demo_part('.demo-arrow').style.left = arrow + 'px';
+}
+
+// One part of the balloon (count, text, buttons, arrow).
+function demo_part(selector) {
+  return demoBalloon.querySelector(selector);
+}
+
+// The next/finish button: label and whether it can be pressed.
+function demo_set_next(label, enabled) {
+  var next = demo_part('.demo-next');
+  next.textContent = label;
+  next.disabled = !enabled;
+}
+
+function demo_untarget() {
+  if (demoTarget) {
+    demoTarget.classList.remove('demo-target');
+  }
 }
 
 function demo_show(index) {
   demo_stop_waiting();
-  $(demoTarget).removeClass('demo-target');
+  demo_untarget();
   demoIndex = index;
   var step = demoSteps[index];
   if (step.enter) {
@@ -217,21 +247,19 @@ function demo_show(index) {
   }
   demoTarget = demo_resolve_target(step);
   if (demoTarget) {
-    $(demoTarget).addClass('demo-target');
+    demoTarget.classList.add('demo-target');
     demoTarget.scrollIntoView({block: 'nearest', inline: 'nearest'});
   }
 
   // In words: "1 / 11" in a right-to-left page is laid out as "11 / 1".
-  demoBalloon.find('.demo-count').text(
-      'שלב ' + (index + 1) + ' מתוך ' + demoSteps.length);
-  demoBalloon.find('.demo-text').text(step.text);
+  demo_part('.demo-count').textContent =
+      'שלב ' + (index + 1) + ' מתוך ' + demoSteps.length;
+  demo_part('.demo-text').textContent = step.text;
   var last = index === demoSteps.length - 1;
-  demoBalloon.find('.demo-next')
-      .text(step.next || 'הבא')
-      .prop('disabled', false);
-  demoBalloon.find('.demo-stop').toggle(!last);
+  demo_set_next(step.next || 'הבא', true);
+  demo_part('.demo-stop').style.display = last ? 'none' : '';
   demo_place();
-  demoBalloon.find('.demo-next').trigger('focus');
+  demo_part('.demo-next').focus();
   demoShownAt = Date.now();
 }
 
@@ -248,13 +276,13 @@ function demo_next() {
     demo_show(demoIndex + 1);
     return;
   }
-  demoBalloon.find('.demo-next').text('רגע...').prop('disabled', true);
+  demo_set_next('רגע...', false);
   step.action(function() {
     demo_show(demoIndex + 1);
   }, function() {
-    demoBalloon.find('.demo-text').text(
-        'השרת לא ענה הפעם. אפשר לנסות שוב או לסיים את ההדגמה.');
-    demoBalloon.find('.demo-next').text('נסו שוב').prop('disabled', false);
+    demo_part('.demo-text').textContent =
+        'השרת לא ענה הפעם. אפשר לנסות שוב או לסיים את ההדגמה.';
+    demo_set_next('נסו שוב', true);
     demo_place();
   });
 }
@@ -270,41 +298,43 @@ function demo_keydown(evt) {
 
 function demo_end() {
   demo_stop_waiting();
-  $(demoTarget).removeClass('demo-target');
+  demo_untarget();
   demoTarget = null;
   if (demoBalloon) {
     demoBalloon.remove();
     demoBalloon = null;
   }
-  $(window).off('resize.demo');
+  window.removeEventListener('resize', demo_place);
   window.removeEventListener('scroll', demo_place, true);
-  $(document).off('keydown', demo_keydown);
+  document.removeEventListener('keydown', demo_keydown);
 }
 
 function demo_start() {
   demo_end();
   demoSteps = demo_build_steps();
-  demoBalloon = $('<div>', {
-    id: 'DemoBalloon',
-    'class': 'demo-balloon',
-    role: 'dialog',
-    'aria-live': 'polite'
-  }).append(
-      $('<div>', {'class': 'demo-count'}),
-      $('<div>', {'class': 'demo-text'}),
-      $('<div>', {'class': 'demo-actions'}).append(
-          $('<button>', {type: 'button', 'class': 'demo-next'}).click(demo_next),
-          $('<button>', {type: 'button', 'class': 'demo-stop', text: 'סיום'})
-              .click(demo_end)),
-      $('<div>', {'class': 'demo-arrow'}));
-  $('body').append(demoBalloon);
-  $(window).on('resize.demo', demo_place);
+  demoBalloon = document.createElement('div');
+  demoBalloon.id = 'DemoBalloon';
+  demoBalloon.className = 'demo-balloon';
+  demoBalloon.setAttribute('role', 'dialog');
+  demoBalloon.setAttribute('aria-live', 'polite');
+  demoBalloon.innerHTML =
+      '<div class="demo-count"></div>' +
+      '<div class="demo-text"></div>' +
+      '<div class="demo-actions">' +
+      '<button type="button" class="demo-next"></button>' +
+      '<button type="button" class="demo-stop">סיום</button>' +
+      '</div>' +
+      '<div class="demo-arrow"></div>';
+  demo_part('.demo-next').addEventListener('click', demo_next);
+  demo_part('.demo-stop').addEventListener('click', demo_end);
+  document.body.appendChild(demoBalloon);
+  window.addEventListener('resize', demo_place);
   // Capture, so scrolling either panel moves the balloon with its target.
   window.addEventListener('scroll', demo_place, true);
-  $(document).on('keydown', demo_keydown);
+  document.addEventListener('keydown', demo_keydown);
   demo_show(0);
 }
 
-$(document).ready(function() {
-  $('#DemoButton').click(demo_start);
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('DemoButton').addEventListener('click', demo_start);
 });
