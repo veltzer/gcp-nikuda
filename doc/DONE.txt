@@ -33,3 +33,8 @@ Sun Nov  1 02:42:23 IST 2026
 	(no svg is served), gunicorn/flask alternatives (not the bottleneck),
 	unneeded parts of main.py (none: every route and helper is used).
 	Mark Veltzer
+Sun Nov  1 06:09:21 IST 2026
+	close TODO items: one Hebrew font in every browser (Noto Sans Hebrew,
+	checked in Chrome and Firefox); drop the UI revamp, word-bubbles page and
+	Google Analytics items (not wanted).
+	Mark Veltzer
