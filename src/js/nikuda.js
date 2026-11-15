@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }, function() {});
 
   // Show which version is serving: git describe, deploy date and the Cloud
-  // Run revision, stamped by gcloud_run_deploy.sh and served by app/version.
+  // Run revision, stamped by gcloud_deploy.sh and served by app/version.
   call_json('app/version').then(function(info) {
     document.getElementById('VersionInfo').textContent =
         [info.git_describe, info.deploy_date, info.revision].join(' \u00b7 ');
