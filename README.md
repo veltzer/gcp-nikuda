@@ -5,7 +5,7 @@
 
 description: Nikuda web site
 
-project website: https://veltzer.github.io/gcp-nikuda
+project website: <https://veltzer.github.io/gcp-nikuda>
 
 author: Mark Veltzer
 
