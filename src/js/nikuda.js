@@ -71,12 +71,12 @@ function call_json(url, data) {
       return null;
     }).then(function(body) {
       if (!response.ok || body === null) {
-        throw {status: response.status, body: body};
+        throw Object.assign(new Error('request failed'), {status: response.status, body: body});
       }
       return body;
     });
   }, function() {
-    throw {status: 0, body: null};
+    throw Object.assign(new Error('network error'), {status: 0, body: null});
   }).catch(function(error) {
     document.dispatchEvent(new CustomEvent('nikuda:ajaxerror', {detail: error}));
     throw error;
@@ -229,9 +229,8 @@ function Suggest() {
     fade_out(SuggestionBox);
     SuggestionList.replaceChildren();
     return;
-  } else {
-    currentInaked = inaked;
   }
+  currentInaked = inaked;
 
   show_to_user('suggest: ' + inaked);
 
@@ -272,7 +271,7 @@ function Suggest() {
 
 function remove_duplicates(words) {
   // Build unique words list from words by 1 pass using a hash table
-  var uniqueWords = Array();
+  var uniqueWords = [];
   var hash = {};
   for (var i = 0; i < words.length; i++) {
     var word = do_enders(words[i]);
@@ -330,7 +329,8 @@ function cycle_nikud() {
 
   // Find the current punctuation in the punctuations list
   var currentNikud = trim(origElemRef.textContent);
-  for (var i = 0; i < nikudim.length; i++) {
+  var i;
+  for (i = 0; i < nikudim.length; i++) {
     if (nikudim[i] === currentNikud) {
       break;
     }
@@ -370,7 +370,7 @@ function nikudize(doneHandler) {
   Answer.replaceChildren();
 
   // Build word list array (sent to server)
-  var sentWords = Array();
+  var sentWords = [];
   while (true) {
     var pos = txt.search(nikudABRegExp);
     if (pos > 0)

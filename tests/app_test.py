@@ -168,7 +168,7 @@ def enable_nakdan(monkeypatch, reply):
     monkeypatch.setitem(main.app.config, "nakdan_url", "https://nakdan.invalid/")
     monkeypatch.setitem(main.app.config, "nakdan_api_key", "key")
     monkeypatch.setitem(main.app.config, "nakdan_last", float("-inf"))
-    monkeypatch.setattr(main, "nakdan_request", lambda text: reply["data"])
+    monkeypatch.setattr(main, "nakdan_request", lambda _text: reply["data"])
 
 
 def test_nakdan(monkeypatch):

@@ -68,13 +68,13 @@ def analyze(text):
     words = []
     for match in WORD.finditer(text):
         start = len(letters)
-        for c in match.group():
-            if LETTER.match(c):
-                letters.append([c.translate(FINALS), set()])
+        for char in match.group():
+            if LETTER.match(char):
+                letters.append([char.translate(FINALS), set()])
             else:
-                c = FOLD_MARKS.get(c, c)
-                if c in SCORED_MARKS:
-                    letters[-1][1].add(c)
+                mark = FOLD_MARKS.get(char, char)
+                if mark in SCORED_MARKS:
+                    letters[-1][1].add(mark)
         words.append((start, len(letters)))
     return [(c, frozenset(m)) for c, m in letters], words
 

@@ -102,9 +102,9 @@ def strip_nikud(word):
 def with_dictionary(word, nikudim):
     """ nikudim followed by the dictionary's other forms of word. """
     result = []
-    for form in nikudim + app.config["dict"].get(strip_nikud(word), []):
+    for raw_form in nikudim + app.config["dict"].get(strip_nikud(word), []):
         # Mark order differs between sources; compare in NFC.
-        form = unicodedata.normalize("NFC", form)
+        form = unicodedata.normalize("NFC", raw_form)
         if form not in result:
             result.append(form)
     return result
@@ -312,10 +312,7 @@ def naked():
     for obj in jsonobject:
         p_naked = obj["Naked"]
         d = app.config["dict"]
-        if p_naked in d:
-            results = d[p_naked]
-        else:
-            results = []
+        results = d.get(p_naked, [])
         obj["Nikudim"] = results
     return jsonify(jsonobject)
 
