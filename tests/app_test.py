@@ -49,12 +49,12 @@ def test_compression():
     client = main.app.test_client()
 
     for path in ('/', '/static/js/nikuda.js', '/static/css/nikuda.css'):
-        plain = client.get(path)
-        assert "Content-Encoding" not in plain.headers
-        for encoding in ("br", "gzip"):
-            response = client.get(path, headers={"Accept-Encoding": encoding})
-            assert response.headers["Content-Encoding"] == encoding
-            assert len(response.data) < len(plain.data) / 2
+        with client.get(path) as plain:
+            assert "Content-Encoding" not in plain.headers
+            for encoding in ("br", "gzip"):
+                with client.get(path, headers={"Accept-Encoding": encoding}) as response:
+                    assert response.headers["Content-Encoding"] == encoding
+                    assert len(response.data) < len(plain.data) / 2
 
 
 JS_DIR = pathlib.Path(main.HERE) / "js"

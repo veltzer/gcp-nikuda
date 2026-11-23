@@ -65,6 +65,20 @@ app = Flask(__name__, static_folder=None)
 app.config["COMPRESS_ALGORITHM_STREAMING"] = ["br", "gzip"]
 Compress(app)
 
+
+# Registered after Compress, so it runs before it (Flask runs after_request
+# handlers last-registered first). flask-compress replaces a streamed reply's
+# body with a compressing generator and so drops the body's close(): the file
+# send_from_directory opened would stay open until garbage collection. The
+# reply closes it itself instead.
+@app.after_request
+def close_streamed_body(response):
+    """ Keep the close() of a streamed body that flask-compress may replace. """
+    body = response.response
+    if response.is_streamed and hasattr(body, "close"):
+        response.call_on_close(body.close)
+    return response
+
 def load_data():
     """ Load the nikud dictionary once at startup rather than per request. """
     with open(os.path.join(HERE, "data", "all.json"), encoding="UTF8") as fp:
