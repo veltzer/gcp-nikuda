@@ -3,3 +3,5 @@ real site (Cloud Run service nikuda, us-central1):
 	https://www.nikuda.co.il
 console for the project:
 	https://console.cloud.google.com/run?project=veltzer-nikuda-id
+local site (python src/main.py):
+	http://localhost:8080
