@@ -1,8 +1,5 @@
-real site (via appspot):
-	http://nikuda-web.appspot.com
+real site (Cloud Run service nikuda, us-central1):
+	https://nikuda.co.il
+	https://www.nikuda.co.il
 console for the project:
-	https://console.developers.google.com/project/nikuda-web
-local site:
-	http://localhost:8080
-local console:
-	http://localhost:8000
+	https://console.cloud.google.com/run?project=veltzer-nikuda-id
