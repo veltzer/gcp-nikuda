@@ -92,3 +92,8 @@ src_extensions = [".css"]
 src_dirs = ["src/js"]
 args = ["-c", ".oxlintrc.repo.json"]
 dep_inputs = [".oxlintrc.repo.json"]
+
+# every lint suppression names a rule and says why (see the fleet's CLAUDE.md)
+[processor.checker.suppressions]
+src_dirs = [".github", "config", "scripts", "src", "tests"]
+src_files = [".hadolint.yaml", ".yamllint.yaml", "Dockerfile", "README.md"]
