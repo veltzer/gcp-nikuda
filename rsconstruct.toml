@@ -38,6 +38,11 @@ src_files = [".rumdl.toml", "pyproject.toml", "rsconstruct.toml"]
 [processor.checker.itidy]
 src_dirs = ["src"]
 
+# lint the YAML files with yamllint (policy: .yamllint.yaml)
+[processor.checker.iyamllint]
+src_dirs = [".github"]
+src_files = [".hadolint.yaml", ".yamllint.yaml"]
+
 # lint the GitHub Actions workflow files with actionlint
 [processor.checker.iactionlint]
 src_dirs = [".github/workflows"]
