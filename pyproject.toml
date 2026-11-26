@@ -35,6 +35,9 @@ search-path = [
     ".",
 ]
 
+[tool.pyrefly.errors]
+no-any-return = "error"
+
 [tool.pytest.ini_options]
 # Every strictness check pytest has (strict_config, strict_markers,
 # strict_xfail, strict_parametrization_ids), and every warning fails the
