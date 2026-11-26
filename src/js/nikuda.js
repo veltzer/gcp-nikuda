@@ -7,7 +7,7 @@ function get_theme() {
   var stored;
   try {
     stored = window.localStorage.getItem('theme');
-  } catch (e) {
+  } catch {
     stored = null;
   }
   return (THEME_MODES.indexOf(stored) !== -1) ? stored : 'os';
@@ -737,7 +737,7 @@ document.addEventListener('DOMContentLoaded', function() {
     apply_theme(next);
     try {
       window.localStorage.setItem('theme', next);
-    } catch (e) {
+    } catch {
       // private windows may refuse storage; the theme still applies
     }
     refresh_theme_button(next);
