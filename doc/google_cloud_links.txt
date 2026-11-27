@@ -1,6 +1,7 @@
 real site (Cloud Run service nikuda, us-central1):
 	https://nikuda.co.il
 	https://www.nikuda.co.il
+	https://nikuda.veltzer.org
 the service's own run.app hostnames redirect (308) to https://nikuda.co.il
 (CANONICAL_HOST, see .gcp.conf); only /app/version is served on them:
 	https://nikuda-sp7vo5rkrq-uc.a.run.app
