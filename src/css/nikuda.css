@@ -314,8 +314,8 @@ textarea.access_text {
 /* Deployed-version stamp (filled by nikuda.js from app/version), sits at
    the bottom of the answer card below the buttons */
 #VersionInfo {
-	direction: ltr;
 	text-align: center;
+	line-height: 1.5;
 	font-size: 0.6875rem;
 	color: var(--md-on-surface-secondary);
 	margin-top: 8px;

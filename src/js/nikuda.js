@@ -37,6 +37,22 @@ function S(key, params) {
   });
 }
 
+// A date as "2026-11-27 12:56:49 UTC"
+function utc_time(date) {
+  return date.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+}
+
+// How long ago a date was, in Hebrew and in its largest fitting unit
+function time_ago(date) {
+  var units = [['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]];
+  var seconds = Math.round((Date.now() - date.getTime()) / 1000);
+  var unit = units.find(function(candidate) {
+    return Math.abs(seconds) >= candidate[1];
+  }) || units[units.length - 1];
+  return new Intl.RelativeTimeFormat('he', {numeric: 'auto'})
+      .format(-Math.round(seconds / unit[1]), unit[0]);
+}
+
 // references
 var origElemRef = false;
 
@@ -770,10 +786,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }, function() {});
 
-  // Show which version is serving: git describe, deploy date and the Cloud
-  // Run revision, stamped by gcloud_deploy.sh and served by app/version.
+  // Show which version is serving, one line per fact: git describe, when it
+  // was deployed (in UTC, in the reader's own time zone, and how long ago)
+  // and the Cloud Run revision. Stamped by gcloud_deploy.sh and served by
+  // app/version.
   call_json('app/version').then(function(info) {
-    document.getElementById('VersionInfo').textContent =
-        [info.git_describe, info.deploy_date, info.revision].join(' \u00b7 ');
+    var lines = [[S('version_git'), info.git_describe]];
+    var deployed = new Date(info.deploy_date);
+    if (isNaN(deployed.getTime())) {
+      // an unstamped development server says "unknown"
+      lines.push([S('version_deployed_utc'), info.deploy_date]);
+    } else {
+      lines.push([S('version_deployed_utc'), utc_time(deployed)]);
+      lines.push([
+        S('version_deployed_local', {zone: Intl.DateTimeFormat().resolvedOptions().timeZone}),
+        deployed.toLocaleString('he-IL', {dateStyle: 'full', timeStyle: 'long'}),
+      ]);
+      lines.push([S('version_deployed_ago'), time_ago(deployed)]);
+    }
+    lines.push([S('version_revision'), info.revision]);
+    var box = document.getElementById('VersionInfo');
+    box.textContent = '';
+    lines.forEach(function(line) {
+      var row = document.createElement('div');
+      var value = document.createElement('bdi');
+      value.textContent = line[1];
+      row.append(line[0] + ': ', value);
+      box.append(row);
+    });
   }, function() {});
 });
