@@ -14,13 +14,17 @@ import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import onnxruntime
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
+from flask.wrappers import Response
 from flask_compress import Compress
 from nakdimon import predict as nakdimon_predict
 from nakdimon.config import MAIN_MODEL as NAKDIMON_MODEL
+
+if TYPE_CHECKING:
+    from werkzeug.wrappers.response import Response
 
 # The only directories served over /static/. Everything else under src/
 # (main.py, data/) is not reachable over HTTP.
@@ -74,14 +78,14 @@ Compress(app)
 # send_from_directory opened would stay open until garbage collection. The
 # reply closes it itself instead.
 @app.after_request
-def close_streamed_body(response):
+def close_streamed_body(response: Response):
     """ Keep the close() of a streamed body that flask-compress may replace. """
     body = response.response
     if response.is_streamed and hasattr(body, "close"):
         response.call_on_close(body.close)
     return response
 
-def load_data():
+def load_data() -> None:
     """ Load the nikud dictionary once at startup rather than per request. """
     with open(os.path.join(HERE, "data", "all.json"), encoding="UTF8") as fp:
         d = json.load(fp)
@@ -89,7 +93,7 @@ def load_data():
     app.config["sorted"] = sorted(d.keys())
 
 
-def load_build_info():
+def load_build_info() -> None:
     """ Load the deploy stamp written by gcloud_deploy.sh; absent in dev. """
     try:
         with open(BUILD_INFO, encoding="UTF8") as fp:
@@ -99,7 +103,7 @@ def load_build_info():
     app.config["build_info"] = info
 
 
-def load_nakdan_config():
+def load_nakdan_config() -> None:
     """ Read the optional Nakdan settings from the environment. """
     app.config["nakdan_url"] = os.environ.get("NAKDAN_URL")
     app.config["nakdan_api_key"] = os.environ.get("NAKDAN_API_KEY")
@@ -107,7 +111,7 @@ def load_nakdan_config():
     app.config["nakdan_last"] = float("-inf")
 
 
-def load_hosts_config():
+def load_hosts_config() -> None:
     """ Read the hostnames the site is served on from the environment. """
     # The hostname the service is meant to be reached on (gcp_domain in
     # .gcp.conf); empty in dev.
@@ -117,15 +121,15 @@ def load_hosts_config():
     app.config["alias_hosts"] = frozenset(os.environ.get("ALIAS_HOSTS", "").split())
 
 
-def nakdan_enabled():
+def nakdan_enabled() -> bool:
     return bool(app.config["nakdan_url"] and app.config["nakdan_api_key"])
 
 
-def strip_nikud(word):
+def strip_nikud(word: str) -> str:
     return HEBREW_MARK.sub("", word)
 
 
-def with_dictionary(word, nikudim):
+def with_dictionary(word: str, nikudim: list[str]) -> list[str]:
     """ nikudim followed by the dictionary's other forms of word. """
     result = []
     for raw_form in nikudim + app.config["dict"].get(strip_nikud(word), []):
@@ -136,7 +140,7 @@ def with_dictionary(word, nikudim):
     return result
 
 
-def load_nakdimon():
+def load_nakdimon() -> None:
     """ Load the model now rather than on the first request. """
     options = onnxruntime.SessionOptions()
     options.intra_op_num_threads = NAKDIMON_THREADS
@@ -157,7 +161,7 @@ load_nakdimon()
 # are served as they are. /app/version is exempt, so the deploy stamp of the
 # service (or of one tagged revision) can still be asked for directly.
 @app.before_request
-def redirect_to_canonical_host():
+def redirect_to_canonical_host() -> Response | None:
     host = app.config["canonical_host"]
     if not host or request.host == host or request.host in app.config["alias_hosts"] or request.path == "/app/version":
         return None
@@ -165,24 +169,24 @@ def redirect_to_canonical_host():
     return redirect(url, code=308)
 
 @app.route("/static/<directory>/<path:filename>", methods=["GET"])
-def static_asset(directory, filename):
+def static_asset(directory: str, filename: str) -> Response:
     if directory not in ASSET_DIRS:
         abort(404)
     return send_from_directory(directory, filename)
 
 
 @app.route("/", methods=["GET"])
-def index():
+def index() -> Response:
     return send_from_directory("html", "index.html")
 
 
 # Browsers ask for /favicon.ico on their own, whatever the page links.
 @app.route("/favicon.ico", methods=["GET"])
-def favicon():
+def favicon() -> Response:
     return send_from_directory("images", "favicon.ico")
 
 @app.route("/app/version", methods=["GET"])
-def version():
+def version() -> Response:
     info = dict(app.config["build_info"])
     # Cloud Run injects the serving revision name at runtime.
     info["revision"] = os.environ.get("K_REVISION", "local")
@@ -190,11 +194,11 @@ def version():
 
 
 @app.route("/app/features", methods=["GET"])
-def features():
+def features() -> Response:
     return jsonify({"nakdan": nakdan_enabled()})
 
 
-def nakdan_request(text):
+def nakdan_request(text: str):
     """ Send text to the Nakdan API and return its list of tokens. """
     params = {
         "task": "nakdan",
@@ -222,7 +226,7 @@ def nakdan_request(text):
     return reply
 
 
-def nakdan_option_word(option):
+def nakdan_option_word(option: Any):
     """ The vocalized word of one option, without the prefix separator. """
     # An option is {"w": ..., "lex": ..., "morph": ...}; without addmorph some
     # API versions send the word alone or as the first item of a list.
@@ -233,7 +237,7 @@ def nakdan_option_word(option):
     return option.replace("|", "")
 
 
-def nakdan_tokens(tokens):
+def nakdan_tokens(tokens: list[dict[str, Any]]):
     """ Reduce Nakdan tokens to what the page needs: text and options. """
     result: list[dict[str, Any]] = []
     for token in tokens:
@@ -254,7 +258,7 @@ def nakdan_tokens(tokens):
 
 
 @app.route("/app/nakdan", methods=["POST"])
-def nakdan():
+def nakdan() -> Response | tuple[Response, int]:
     if not nakdan_enabled():
         abort(404)
     obj = request.get_json(silent=True)
@@ -284,7 +288,7 @@ def nakdan():
         NAKDAN_LOCK.release()
 
 
-def nakdimon_tokens(text):
+def nakdimon_tokens(text: str):
     """ Split text into separators and words, each word with Nakdimon's
     vocalization first, then the dictionary's. """
     words = HEBREW_WORD.findall(text)
@@ -318,7 +322,7 @@ def nakdimon_tokens(text):
 
 
 @app.route("/app/nakdimon", methods=["POST"])
-def nakdimon():
+def nakdimon() -> Response:
     obj = request.get_json(silent=True)
     if not isinstance(obj, dict) or not isinstance(obj.get("Text"), str):
         abort(400)
@@ -329,7 +333,7 @@ def nakdimon():
 
 
 @app.route("/app/suggest", methods=["POST"])
-def suggest():
+def suggest() -> Response:
     obj = request.get_json(silent=True)
     if not isinstance(obj, dict) or not isinstance(obj.get("Naked"), str):
         abort(400)
@@ -341,7 +345,7 @@ def suggest():
 
 
 @app.route("/app/naked", methods=["POST"])
-def naked():
+def naked() -> Response:
     jsonobject = request.get_json(silent=True)
     if not isinstance(jsonobject, list) or not all(
             isinstance(obj, dict) and isinstance(obj.get("Naked"), str)

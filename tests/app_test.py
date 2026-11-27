@@ -3,14 +3,18 @@
 import json
 import pathlib
 import re
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock
 
 import webtest
 
 import main
 
+if TYPE_CHECKING:
+    import pytest
 
-def test_get():
+
+def test_get() -> None:
     """ GET / serves the static index page. """
     application = webtest.TestApp(main.app)
 
@@ -19,7 +23,7 @@ def test_get():
     assert b"html" in response.body.lower()
 
 
-def test_canonical_host_redirect(monkeypatch):
+def test_canonical_host_redirect(monkeypatch: pytest.MonkeyPatch) -> None:
     """ Any hostname but the custom domain and its aliases is redirected. """
     monkeypatch.setitem(main.app.config, "canonical_host", "nikuda.example")
     monkeypatch.setitem(main.app.config, "alias_hosts", frozenset({"www.nikuda.example"}))
@@ -40,14 +44,14 @@ def test_canonical_host_redirect(monkeypatch):
     assert "git_describe" in application.get('/app/version', extra_environ=run_app).json
 
 
-def test_no_canonical_host():
+def test_no_canonical_host() -> None:
     """ Without CANONICAL_HOST (dev) the app answers on any hostname. """
     application = webtest.TestApp(main.app)
 
     assert application.get('/', extra_environ={"HTTP_HOST": "127.0.0.1:8080"}).status_int == 200
 
 
-def test_favicon():
+def test_favicon() -> None:
     """ GET /favicon.ico serves the icon browsers ask for on their own. """
     application = webtest.TestApp(main.app)
 
@@ -56,7 +60,7 @@ def test_favicon():
     assert response.body[:4] == b"\x00\x00\x01\x00"
 
 
-def test_social_card():
+def test_social_card() -> None:
     """ GET / links a 1200x630 PNG preview card that is actually served. """
     application = webtest.TestApp(main.app)
 
@@ -71,7 +75,7 @@ def test_social_card():
     assert int.from_bytes(response.body[20:24], "big") == 630
 
 
-def test_compression():
+def test_compression() -> None:
     """ Text replies are compressed with whatever the browser accepts. """
     # Flask's client, not webtest: webtest tries to decode replies and has
     # no brotli decoder.
@@ -97,13 +101,13 @@ def page_strings():
     return json.loads(block.group(1))
 
 
-def test_js_is_ascii():
+def test_js_is_ascii() -> None:
     """ The scripts carry no Hebrew: texts live in index.html's #Strings. """
     for path in JS_DIR.glob("*.js"):
         path.read_bytes().decode("ascii")
 
 
-def test_js_strings_exist():
+def test_js_strings_exist() -> None:
     """ Every S('key') the scripts use is in the #Strings block. """
     strings = page_strings()
     code = "".join(path.read_text(encoding="ascii") for path in JS_DIR.glob("*.js"))
@@ -115,7 +119,7 @@ def test_js_strings_exist():
     assert keys <= set(strings), keys - set(strings)
 
 
-def test_version():
+def test_version() -> None:
     """ GET /app/version reports the deploy stamp and the serving revision. """
     application = webtest.TestApp(main.app)
 
@@ -125,7 +129,7 @@ def test_version():
         assert key in response.json
 
 
-def test_suggest():
+def test_suggest() -> None:
     """ POST /app/suggest completes a prefix from the dictionary. """
     application = webtest.TestApp(main.app)
 
@@ -134,7 +138,7 @@ def test_suggest():
     assert "Nakeds" in response.json
 
 
-def test_suggest_bad_request():
+def test_suggest_bad_request() -> None:
     """ POST /app/suggest rejects a body without a string prefix. """
     application = webtest.TestApp(main.app)
 
@@ -143,7 +147,7 @@ def test_suggest_bad_request():
     application.post_json('/app/suggest', {"Naked": 5}, status=400)
 
 
-def test_naked():
+def test_naked() -> None:
     """ POST /app/naked returns the dictionary forms of each word. """
     application = webtest.TestApp(main.app)
 
@@ -154,7 +158,7 @@ def test_naked():
         assert main.strip_nikud(form) == "שלום"
 
 
-def test_naked_bad_request():
+def test_naked_bad_request() -> None:
     """ POST /app/naked rejects anything but a list of words, and long lists. """
     application = webtest.TestApp(main.app)
 
@@ -165,7 +169,7 @@ def test_naked_bad_request():
     application.post_json('/app/naked', words, status=413)
 
 
-def test_features():
+def test_features() -> None:
     """ GET /app/features reports Nakdan off when it is not configured. """
     application = webtest.TestApp(main.app)
 
@@ -174,7 +178,7 @@ def test_features():
     assert response.json == {"nakdan": False}
 
 
-def test_nakdan_disabled():
+def test_nakdan_disabled() -> None:
     """ POST /app/nakdan does not exist when Nakdan is not configured. """
     application = webtest.TestApp(main.app)
 
@@ -192,7 +196,7 @@ NAKDAN_REPLY = {"data": [
 ]}
 
 
-def enable_nakdan(monkeypatch, reply):
+def enable_nakdan(monkeypatch: pytest.MonkeyPatch, reply: dict[str, Any]) -> None:
     """ Configure Nakdan and replace the remote API with a canned reply. """
     monkeypatch.setitem(main.app.config, "nakdan_url", "https://nakdan.invalid/")
     monkeypatch.setitem(main.app.config, "nakdan_api_key", "key")
@@ -200,7 +204,7 @@ def enable_nakdan(monkeypatch, reply):
     monkeypatch.setattr(main, "nakdan_request", Mock(return_value=reply["data"]))
 
 
-def test_nakdan(monkeypatch):
+def test_nakdan(monkeypatch: pytest.MonkeyPatch) -> None:
     """ POST /app/nakdan returns each token with its distinct options. """
     enable_nakdan(monkeypatch, NAKDAN_REPLY)
     application = webtest.TestApp(main.app)
@@ -215,7 +219,7 @@ def test_nakdan(monkeypatch):
     assert tokens[2]["Nikudim"][0] == "לָעוֹלָם"
 
 
-def test_nakdan_throttle(monkeypatch):
+def test_nakdan_throttle(monkeypatch: pytest.MonkeyPatch) -> None:
     """ A second request inside the interval is turned away with 429. """
     enable_nakdan(monkeypatch, NAKDAN_REPLY)
     application = webtest.TestApp(main.app)
@@ -225,7 +229,7 @@ def test_nakdan_throttle(monkeypatch):
     assert response.json["RetryAfter"] > 0
 
 
-def test_nakdan_bad_request(monkeypatch):
+def test_nakdan_bad_request(monkeypatch: pytest.MonkeyPatch) -> None:
     """ POST /app/nakdan rejects a body without text, and oversized text. """
     enable_nakdan(monkeypatch, NAKDAN_REPLY)
     application = webtest.TestApp(main.app)
@@ -235,7 +239,7 @@ def test_nakdan_bad_request(monkeypatch):
     application.post_json('/app/nakdan', {"Text": text}, status=413)
 
 
-def test_nakdimon():
+def test_nakdimon() -> None:
     """ POST /app/nakdimon keeps the text and vocalizes every word. """
     application = webtest.TestApp(main.app)
 
@@ -251,7 +255,7 @@ def test_nakdimon():
     assert words[0]["Nikudim"][0] == "שָׁלוֹם"
 
 
-def test_nakdimon_bad_request():
+def test_nakdimon_bad_request() -> None:
     """ POST /app/nakdimon rejects a body without text, and oversized text. """
     application = webtest.TestApp(main.app)
 

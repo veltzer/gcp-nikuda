@@ -36,6 +36,7 @@ import os
 import re
 import sys
 import unicodedata
+from typing import Any
 
 import nakdimon.predict
 
@@ -54,15 +55,15 @@ FINALS = str.maketrans("ךםןףץ", "כמנפצ")
 WORD = re.compile("[א-ת][א-ת֑-ׇ]*")
 
 
-def is_mark(c):
+def is_mark(c: str):
     return "֑" <= c <= "ׇ" and not LETTER.match(c)
 
 
-def strip_nikud(text):
+def strip_nikud(text: str):
     return "".join(c for c in text if not is_mark(c))
 
 
-def analyze(text):
+def analyze(text: str):
     """ Hebrew letters of text, each with its scored marks, and word spans. """
     letters: list[tuple[str, set[str]]] = []
     words = []
@@ -79,7 +80,7 @@ def analyze(text):
     return [(c, frozenset(m)) for c, m in letters], words
 
 
-def score(expected, actual):
+def score(expected: str, actual: str):
     """ Per-letter correctness of actual against expected, by letter index. """
     exp_letters, words = analyze(expected)
     act_letters, _ = analyze(actual)
@@ -95,20 +96,20 @@ def score(expected, actual):
 
 
 class Tally:
-    def __init__(self):
+    def __init__(self) -> None:
         self.letters = self.letters_right = self.words = self.words_right = 0
 
-    def add(self, right, words):
+    def add(self, right: list[bool], words: list[tuple[int, int]]) -> None:
         self.letters += len(right)
         self.letters_right += sum(right)
         self.words += len(words)
         self.words_right += sum(all(right[a:b]) for a, b in words)
 
-    def row(self, name):
+    def row(self, name: str) -> str:
         return f"{name:<14}{pct(self.letters_right, self.letters):>9}{pct(self.words_right, self.words):>9}"
 
 
-def pct(part, whole):
+def pct(part: int, whole: int) -> str:
     return f"{100 * part / whole:.1f}%" if whole else "-"
 
 
@@ -119,12 +120,12 @@ def load_dictionary():
     return {k: list(dict.fromkeys(unicodedata.normalize("NFC", w) for w in v)) for k, v in d.items()}
 
 
-def dictionary_vocalize(text, dictionary, expected=None):
+def dictionary_vocalize(text: str, dictionary: dict[str, list[str]], expected: str | None = None) -> str:
     """ The site's lookup: first option per word. With expected, pick the
     expected form when it is among the options instead (the oracle). """
     exp_words = iter(WORD.findall(expected)) if expected is not None else None
 
-    def replace(match):
+    def replace(match: re.Match[str]):
         word = match.group()
         options = dictionary.get(word, [])
         if exp_words is not None:
@@ -137,7 +138,7 @@ def dictionary_vocalize(text, dictionary, expected=None):
     return WORD.sub(replace, text)
 
 
-def find_documents(path):
+def find_documents(path: str):
     """ Yield (test set root or None, path of an expected document). """
     if os.path.isfile(path):
         yield None, path
@@ -150,12 +151,12 @@ def find_documents(path):
                 yield root, os.path.join(dirpath, name)
 
 
-def read(path):
+def read(path: str) -> str:
     with open(path, encoding="utf-8-sig") as fp:
         return unicodedata.normalize("NFC", fp.read())
 
 
-def compare(path, dictionary, saved, use_nakdimon):
+def compare(path: str, dictionary: dict[str, list[str]], saved: dict[str, Any], *, use_nakdimon: bool) -> tuple[dict[str, Tally], list[int]]:
     tallies = {}
     coverage = [0, 0, 0]  # words, words in dictionary, exact form in dictionary
     for root, doc in find_documents(path):
@@ -183,7 +184,7 @@ def compare(path, dictionary, saved, use_nakdimon):
     return tallies, coverage
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Compare nikud systems against hand-vocalized text.")
     parser.add_argument("test_sets", nargs="+", help="Nakdimon-style test set dirs, or vocalized .txt files/dirs")
     parser.add_argument("--saved", nargs="*", default=DEFAULT_SAVED,
@@ -195,7 +196,7 @@ def main():
     for path in args.test_sets:
         if not os.path.exists(path):
             sys.exit(f"no such test set: {path}")
-        tallies, (words, known, exact) = compare(path, dictionary, args.saved, not args.no_nakdimon)
+        tallies, (words, known, exact) = compare(path, dictionary, args.saved, use_nakdimon=not args.no_nakdimon)
         print(f"== {path}")
         print(f"{tallies['dictionary'].words} words; in dictionary: {pct(known, words)}, "
               f"with the expected form: {pct(exact, words)}")

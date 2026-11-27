@@ -22,13 +22,14 @@ import os
 import subprocess
 import sys
 import urllib.request
+from typing import Any
 
 PASS_ENTRY = "keys/dicta.org.il"
 SAMPLE = "שלום עולם, זהו ניסיון של הנקדן של דיקטה."
 MAX_CHARS = 30000
 
 
-def read_pass():
+def read_pass() -> tuple[str, str | None]:
     """ Return (api key, url) from the pass entry. """
     proc = subprocess.run(
         ["pass", "show", PASS_ENTRY],
@@ -44,7 +45,7 @@ def read_pass():
     return lines[0].strip(), url
 
 
-def get_credentials():
+def get_credentials() -> tuple[str, str]:
     key = os.environ.get("NAKDAN_API_KEY")
     url = os.environ.get("NAKDAN_URL")
     if not (key and url):
@@ -56,7 +57,7 @@ def get_credentials():
     return key, url
 
 
-def nakdan(text, key, url, genre):
+def nakdan(text: str, key: str, url: str, genre: str):
     """ Send text to the Nakdan and return its list of tokens. """
     params = {
         "task": "nakdan",
@@ -82,7 +83,7 @@ def nakdan(text, key, url, genre):
     return reply
 
 
-def option_word(option):
+def option_word(option: Any):
     """ The vocalized word of an option, without the prefix separator. """
     if isinstance(option, dict):
         option = option["w"]
@@ -91,7 +92,7 @@ def option_word(option):
     return option.replace("|", "")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Vocalize Hebrew text with Dicta's Nakdan API.")
     parser.add_argument("text", nargs="*", help="text to vocalize (default: a sample sentence)")
     parser.add_argument("--genre", choices=["modern", "rabbinic", "premodern"], default="modern")
