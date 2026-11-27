@@ -12,10 +12,11 @@ import threading
 import time
 import unicodedata
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import onnxruntime
-from flask import Flask, abort, jsonify, request, send_from_directory
+from flask import Flask, abort, jsonify, redirect, request, send_from_directory
 from flask_compress import Compress
 from nakdimon import predict as nakdimon_predict
 from nakdimon.config import MAIN_MODEL as NAKDIMON_MODEL
@@ -105,6 +106,16 @@ def load_nakdan_config():
     app.config["nakdan_last"] = float("-inf")
 
 
+def load_hosts_config():
+    """ Read the hostnames the site is served on from the environment. """
+    # The hostname the service is meant to be reached on (gcp_domain in
+    # .gcp.conf); empty in dev.
+    app.config["canonical_host"] = os.environ.get("CANONICAL_HOST", "")
+    # More hostnames the site is served on as it is (gcp_alias_domains in
+    # .gcp.conf), space separated.
+    app.config["alias_hosts"] = frozenset(os.environ.get("ALIAS_HOSTS", "").split())
+
+
 def nakdan_enabled():
     return bool(app.config["nakdan_url"] and app.config["nakdan_api_key"])
 
@@ -136,7 +147,21 @@ def load_nakdimon():
 load_data()
 load_build_info()
 load_nakdan_config()
+load_hosts_config()
 load_nakdimon()
+
+
+# Cloud Run also answers on its run.app hostnames. Send those to the custom
+# domain, path and query kept, so the site has one address. The alias hosts
+# are served as they are. /app/version is exempt, so the deploy stamp of the
+# service (or of one tagged revision) can still be asked for directly.
+@app.before_request
+def redirect_to_canonical_host():
+    host = app.config["canonical_host"]
+    if not host or request.host == host or request.host in app.config["alias_hosts"] or request.path == "/app/version":
+        return None
+    url = urllib.parse.urlsplit(request.url)._replace(scheme="https", netloc=host).geturl()
+    return redirect(url, code=308)
 
 @app.route("/static/<directory>/<path:filename>", methods=["GET"])
 def static_asset(directory, filename):

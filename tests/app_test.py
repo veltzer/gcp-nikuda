@@ -18,6 +18,34 @@ def test_get():
     assert b"html" in response.body.lower()
 
 
+def test_canonical_host_redirect(monkeypatch):
+    """ Any hostname but the custom domain and its aliases is redirected. """
+    monkeypatch.setitem(main.app.config, "canonical_host", "nikuda.example")
+    monkeypatch.setitem(main.app.config, "alias_hosts", frozenset({"www.nikuda.example"}))
+    application = webtest.TestApp(main.app)
+    run_app = {"HTTP_HOST": "nikuda-123.us-central1.run.app"}
+
+    # the run.app hostnames are sent to the custom domain, path and query kept
+    response = application.get('/static/css/nikuda.css?x=1', extra_environ=run_app)
+    assert response.status_int == 308
+    assert response.location == "https://nikuda.example/static/css/nikuda.css?x=1"
+    # 308 keeps the method, so the page's POSTs follow too
+    response = application.post_json('/app/suggest', {"Naked": ""}, extra_environ=run_app, status=308)
+    assert response.location == "https://nikuda.example/app/suggest"
+    # the custom domain and its alias are served as usual
+    for host in ("nikuda.example", "www.nikuda.example"):
+        assert application.get('/', extra_environ={"HTTP_HOST": host}).status_int == 200
+    # the deploy stamp can still be asked of the service directly
+    assert "git_describe" in application.get('/app/version', extra_environ=run_app).json
+
+
+def test_no_canonical_host():
+    """ Without CANONICAL_HOST (dev) the app answers on any hostname. """
+    application = webtest.TestApp(main.app)
+
+    assert application.get('/', extra_environ={"HTTP_HOST": "127.0.0.1:8080"}).status_int == 200
+
+
 def test_favicon():
     """ GET /favicon.ico serves the icon browsers ask for on their own. """
     application = webtest.TestApp(main.app)

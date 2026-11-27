@@ -1,6 +1,10 @@
 real site (Cloud Run service nikuda, us-central1):
 	https://nikuda.co.il
 	https://www.nikuda.co.il
+the service's own run.app hostnames redirect (308) to https://nikuda.co.il
+(CANONICAL_HOST, see .gcp.conf); only /app/version is served on them:
+	https://nikuda-sp7vo5rkrq-uc.a.run.app
+	https://nikuda-1013305060185.us-central1.run.app
 console for the project:
 	https://console.cloud.google.com/run?project=veltzer-nikuda-id
 local site (python src/main.py):
