@@ -3,6 +3,7 @@
 import json
 import pathlib
 import re
+from unittest.mock import Mock
 
 import webtest
 
@@ -196,7 +197,7 @@ def enable_nakdan(monkeypatch, reply):
     monkeypatch.setitem(main.app.config, "nakdan_url", "https://nakdan.invalid/")
     monkeypatch.setitem(main.app.config, "nakdan_api_key", "key")
     monkeypatch.setitem(main.app.config, "nakdan_last", float("-inf"))
-    monkeypatch.setattr(main, "nakdan_request", lambda _text: reply["data"])
+    monkeypatch.setattr(main, "nakdan_request", Mock(return_value=reply["data"]))
 
 
 def test_nakdan(monkeypatch):
