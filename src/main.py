@@ -14,6 +14,7 @@ import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import Any
 
 import onnxruntime
 from flask import Flask, abort, jsonify, redirect, request, send_from_directory
@@ -234,7 +235,7 @@ def nakdan_option_word(option):
 
 def nakdan_tokens(tokens):
     """ Reduce Nakdan tokens to what the page needs: text and options. """
-    result = []
+    result: list[dict[str, Any]] = []
     for token in tokens:
         analysis = token.get("nakdan", token)
         nikudim = []
@@ -299,7 +300,7 @@ def nakdimon_tokens(text):
         for k in range(block.size):
             choice[block.a + k] = vocalized[block.b + k]
 
-    result = []
+    result: list[dict[str, Any]] = []
     pos = 0
     for i, match in enumerate(HEBREW_WORD.finditer(text)):
         if match.start() > pos:

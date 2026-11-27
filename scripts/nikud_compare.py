@@ -64,13 +64,13 @@ def strip_nikud(text):
 
 def analyze(text):
     """ Hebrew letters of text, each with its scored marks, and word spans. """
-    letters = []
+    letters: list[tuple[str, set[str]]] = []
     words = []
     for match in WORD.finditer(text):
         start = len(letters)
         for char in match.group():
             if LETTER.match(char):
-                letters.append([char.translate(FINALS), set()])
+                letters.append((char.translate(FINALS), set()))
             else:
                 mark = FOLD_MARKS.get(char, char)
                 if mark in SCORED_MARKS:
